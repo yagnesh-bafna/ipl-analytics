@@ -197,13 +197,9 @@ function AdminDashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis 
                   dataKey="player" 
-                  tick={{ fill: '#94a3b8', fontSize: 10 }} 
+                  tick={{ fill: '#94a3b8', fontSize: 9 }} 
                   tickLine={false} 
                   axisLine={false}
-                  interval={0}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
                 />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: 12, color: '#f8fafc', fontSize: 12 }} />
