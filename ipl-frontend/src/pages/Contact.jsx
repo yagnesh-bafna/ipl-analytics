@@ -93,7 +93,7 @@ export default function Contact() {
               {[
                 { icon: Mail,    title: 'Strategic Support', desc: 'support@iplsolver.io', value: 'contact@iplsolver.io' },
                 { icon: Clock,   title: 'Response Latency',  desc: 'Average: < 24 Hours', value: 'Within 24 business hours' },
-                { icon: MapPin,  title: 'Operations Center', desc: 'Bengaluru / Remote',   value: 'IPL Analytics Division' },
+                { icon: MapPin,  title: 'Operations Center', desc: 'Mumbai / Remote',      value: 'IPL Analytics Division' },
               ].map(({ icon: Icon, title, desc, value }) => (
                 <div key={title} className="glass-card flex items-start gap-4 p-5 sm:p-6 group hover:translate-x-1 transition-all duration-300">
                   <div className="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500/20 transition-colors">
@@ -106,12 +106,6 @@ export default function Contact() {
                   </div>
                 </div>
               ))}
-
-              <div className="glass-card p-6 bg-gradient-to-br from-primary-500/5 to-secondary-500/5 border-dashed">
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
-                  We are constantly refining our predictive models. If you have feedback on player valuation or matrix clustering, please let our team know.
-                </p>
-              </div>
             </motion.div>
           </div>
         </div>
