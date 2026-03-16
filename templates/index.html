@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL Solver | Decision Analytics</title>
+    <!-- MODERN FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- EXTERNAL LIBRARIES -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/motion@10.16.2/dist/motion.js"></script>
+</head>
+<body>
+    <!-- Cute Landing Animation -->
+    <div class="intro-overlay" id="intro-overlay">
+        <div class="intro-icon">🏏</div>
+        <div class="intro-text">IPL Solver Starting...</div>
+    </div>
+
+    <div class="layout">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo cursor-pointer" onclick="handleLogoClick()">
+                    <i data-lucide="bar-chart-3" class="text-accent"></i>
+                    <h2 class="logo-text">IPL Solver</h2>
+                </div>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-page="dashboard" onclick="navigate('dashboard')">
+                    <i data-lucide="layout-dashboard"></i> Dashboard
+                </li>
+                <li data-page="batting" onclick="navigate('batting')">
+                    <i data-lucide="user"></i> Batting Scouting
+                </li>
+                <li data-page="all_rounder" onclick="navigate('all_rounder')">
+                    <i data-lucide="zap"></i> All-Rounder
+                </li>
+                <li data-page="bowling" onclick="navigate('bowling')">
+                    <i data-lucide="target"></i> Bowling Scouting
+                </li>
+                <li data-page="matrix" onclick="navigate('matrix')">
+                    <i data-lucide="layers"></i> Player Matrix
+                </li>
+                <li data-page="dream_team" onclick="navigate('dream_team')">
+                    <i data-lucide="award"></i> Dream Team
+                </li>
+                <li data-page="auction" onclick="navigate('auction')">
+                    <i data-lucide="banknote"></i> Auction Predictor
+                </li>
+                <li data-page="contact" onclick="navigate('contact')">
+                    <i data-lucide="mail"></i> Contact Us
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header fade-in">
+                <div class="header-title">
+                    <h1 id="page-title">Dashboard</h1>
+                    <p id="page-subtitle" class="text-muted">Overview of the IPL Analytics System.</p>
+                </div>
+                <div class="auth-mockup" id="auth-mockup">
+                    <button class="btn-ghost" onclick="navigate('auth')">Sign In</button>
+                    <button class="btn-primary" onclick="navigate('auth')">Sign Up</button>
+                </div>
+            </header>
+
+            <div class="page-container" id="page-container">
+                <!-- Javascript injects content here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Player Modal Profile -->
+    <div id="player-modal" class="modal">
+        <div class="modal-content animate-in zoom-in-95">
+            <span class="close-btn" onclick="closeModal('player-modal')">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Fanboy Teams Modal -->
+    <div id="team-modal" class="modal">
+        <div class="modal-content animate-in slide-in-bottom">
+            <span class="close-btn" onclick="document.getElementById('team-modal').classList.remove('active')">&times;</span>
+            <div id="team-modal-body"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
