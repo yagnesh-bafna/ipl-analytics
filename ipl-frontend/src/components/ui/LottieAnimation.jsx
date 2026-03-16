@@ -16,8 +16,10 @@ export default function LottieAnimation({ url, className }) {
   if (error) return null
   if (!animationData) return <div className={className}><Spinner /></div>
 
-  // Defensive check for Lottie component and data
-  if (typeof Lottie !== 'function' && typeof Lottie !== 'object') {
+  // React 19 / ESM Interop fix: ensure we have a valid component
+  const LottieComponent = Lottie?.default || Lottie
+
+  if (typeof LottieComponent !== 'function' && typeof LottieComponent !== 'object') {
     console.warn('Lottie component not loaded correctly')
     return null
   }
@@ -30,7 +32,7 @@ export default function LottieAnimation({ url, className }) {
 
   return (
     <div className={className}>
-      <Lottie animationData={animationData} loop={true} />
+      <LottieComponent animationData={animationData} loop={true} />
     </div>
   )
 }
