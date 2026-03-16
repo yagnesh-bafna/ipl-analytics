@@ -6,6 +6,7 @@ import { PageLoader } from '../components/ui/Spinner'
 import { fetchAdminUsers, toggleUserStatus, resetUserPassword } from '../lib/api'
 import { useApi } from '../hooks/useApi'
 import { RefreshCw } from 'lucide-react'
+import clsx from 'clsx'
 
 export default function AdminUsers() {
   const { data: users, loading, error } = useApi(fetchAdminUsers)
