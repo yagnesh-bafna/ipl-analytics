@@ -216,14 +216,9 @@ function AdminDashboard() {
             </button>
           </div>
           <div className="mt-8 pt-6 border-t border-gray-100 dark:border-dark-700">
-             <div className="flex items-center gap-4">
-               <div className="w-12 h-12 flex-shrink-0">
-                 <LottieAnimation url={CHART_ANIM} className="w-full h-full" />
-               </div>
-               <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold leading-tight">
-                 Real-time <br/> Telemetry Active
-               </div>
-             </div>
+             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold leading-tight">
+               System Status: <span className="text-emerald-500">Nominal</span>
+             </p>
           </div>
         </motion.div>
       </div>
