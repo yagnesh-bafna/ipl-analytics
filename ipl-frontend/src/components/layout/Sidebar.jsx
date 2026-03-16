@@ -20,7 +20,7 @@ const navItems = [
 
 const adminItems = [
   { path: '/dashboard',    label: 'Dashboard',        icon: LayoutDashboard },
-  { path: '/admin/users',  label: 'User Registry',    icon: Users },
+  { path: '/admin/users',  label: 'Registry Management', icon: Users },
   { path: '/contact',      label: 'Contact',          icon: Mail },
 ]
 
