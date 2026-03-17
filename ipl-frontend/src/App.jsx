@@ -14,6 +14,7 @@ import Auction from './pages/Auction'
 import Contact from './pages/Contact'
 import AdminUsers from './pages/AdminUsers'
 import PlayerProfile from './pages/PlayerProfile'
+import PlayerMatchup from './pages/PlayerMatchup'
 
 import { SquadProvider } from './context/SquadContext'
 
@@ -44,6 +45,7 @@ export default function App() {
                 <Route path="/all-rounder" element={<PrivateRoute><Scouting type="all_rounder" /></PrivateRoute>} />
                 <Route path="/matrix"    element={<PrivateRoute><Matrix /></PrivateRoute>} />
                 <Route path="/dream-team" element={<PrivateRoute><DreamTeam /></PrivateRoute>} />
+                <Route path="/matchup"    element={<PrivateRoute><PlayerMatchup /></PrivateRoute>} />
                 <Route path="/auction"   element={<PrivateRoute><Auction /></PrivateRoute>} />
                 <Route path="/contact"   element={<PrivateRoute><Contact /></PrivateRoute>} />
                 <Route path="/player/:name" element={<PrivateRoute><PlayerProfile /></PrivateRoute>} />

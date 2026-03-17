@@ -2,7 +2,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, User, Target, Wind, Layers, Award,
-  Banknote, Mail, BarChart3, Users
+  Banknote, Mail, BarChart3, Users, GitCompare
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import clsx from 'clsx'
@@ -14,6 +14,7 @@ const navItems = [
   { path: '/bowling',     label: 'Bowling Scouting',  icon: Target },
   { path: '/matrix',      label: 'Player Matrix',     icon: Layers },
   { path: '/dream-team',  label: 'Dream Team',        icon: Award },
+  { path: '/matchup',     label: 'Player Matchup',    icon: GitCompare },
   { path: '/auction',     label: 'Auction Predictor', icon: Banknote },
   { path: '/contact',     label: 'Contact Us',        icon: Mail },
 ]
