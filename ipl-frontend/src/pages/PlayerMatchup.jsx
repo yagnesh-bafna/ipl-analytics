@@ -114,7 +114,7 @@ export default function PlayerMatchup() {
   }, [pAData, pBData]);
 
   const columns = [
-    { title: 'Metric', dataKey: 'label', render: (t) => <Text strong className="text-gray-400 uppercase text-[10px] tracking-widest">{t}</Text> },
+    { title: 'Metric', dataIndex: 'label', render: (t) => <Text strong className="text-gray-400 uppercase text-[10px] tracking-widest">{t}</Text> },
     { 
       title: pAData?.name || 'Player A', 
       render: (_, record) => (
@@ -143,24 +143,29 @@ export default function PlayerMatchup() {
 
   return (
     <Layout>
-      <div className="flex flex-col h-full p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+      <div className="flex flex-col h-full p-4 sm:p-8 overflow-y-auto custom-scrollbar bg-gray-50/30 dark:bg-dark-950/20">
         <Header title="Player Matchup" subtitle="Compare tactical profiles and career trajectories." />
 
         {/* Selection UI */}
-        <div className="glass-card mb-8 p-6">
-          <Row gutter={[24, 24]} align="middle">
-            <Col xs={24} md={10}>
-              <div className="flex flex-col gap-2">
-                <Text className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Primary Selection</Text>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card mb-8 p-8 border-gray-200/50 dark:border-dark-700/50 shadow-xl shadow-black/5"
+        >
+          <Row gutter={[32, 32]} align="middle">
+            <Col xs={24} lg={10}>
+              <div className="flex flex-col gap-3">
+                <Text className="text-[11px] font-black uppercase tracking-[0.2em] text-indigo-500 dark:text-indigo-400 opacity-80">Primary Selection</Text>
                 <Select
                   showSearch
                   placeholder="Select Player A"
-                  className="w-full custom-select"
+                  className="w-full custom-select-sync"
+                  popupClassName="custom-dropdown-sync"
                   onChange={setPlayerA}
                   value={playerA}
                   optionFilterProp="children"
                   filterOption={(input, option) =>
-                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                    (option?.children ?? '').toLowerCase().indexOf(input.toLowerCase()) >= 0
                   }
                 >
                   {allPlayers.map(p => (
@@ -169,23 +174,24 @@ export default function PlayerMatchup() {
                 </Select>
               </div>
             </Col>
-            <Col xs={24} md={4} className="flex justify-center">
-              <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-dark-800 flex items-center justify-center border-4 border-white dark:border-dark-900 shadow-xl">
-                <GitCompare className="w-5 h-5 text-gray-400" />
+            <Col xs={24} lg={4} className="flex justify-center">
+              <div className="w-14 h-14 rounded-2xl bg-white dark:bg-dark-800 flex items-center justify-center border border-gray-100 dark:border-dark-700 shadow-2xl rotate-45 group hover:rotate-[225deg] transition-all duration-700">
+                <GitCompare className="w-6 h-6 text-gray-400 -rotate-45 group-hover:rotate-[-225deg] transition-all duration-700" />
               </div>
             </Col>
-            <Col xs={24} md={10}>
-              <div className="flex flex-col gap-2">
-                <Text className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Target Comparison</Text>
+            <Col xs={24} lg={10}>
+              <div className="flex flex-col gap-3 text-right lg:text-left">
+                <Text className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-400 opacity-80 lg:text-right">Target Comparison</Text>
                 <Select
                   showSearch
                   placeholder="Select Player B"
-                  className="w-full custom-select"
+                  className="w-full custom-select-sync"
+                  popupClassName="custom-dropdown-sync"
                   onChange={setPlayerB}
                   value={playerB}
                   optionFilterProp="children"
                   filterOption={(input, option) =>
-                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                    (option?.children ?? '').toLowerCase().indexOf(input.toLowerCase()) >= 0
                   }
                 >
                   {allPlayers.map(p => (
@@ -195,97 +201,165 @@ export default function PlayerMatchup() {
               </div>
             </Col>
           </Row>
-        </div>
+        </motion.div>
 
         {/* Comparison Content */}
         <AnimatePresence mode="wait">
           {(!pAData || !pBData) ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-96 flex flex-col items-center justify-center bg-gray-50/10 rounded-3xl border-2 border-dashed border-gray-200 dark:border-dark-800">
-              <Empty description={<Text className="text-gray-400 font-bold">Select two players to generate visual comparison</Text>} />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.98 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              exit={{ opacity: 0, scale: 0.98 }} 
+              className="flex-1 flex flex-col items-center justify-center bg-gray-100/30 dark:bg-dark-900/20 rounded-[2rem] border-2 border-dashed border-gray-200 dark:border-dark-800/50 min-h-[400px]"
+            >
+              <Empty 
+                imageStyle={{ height: 120 }}
+                description={
+                  <div className="flex flex-col items-center gap-2 mt-4">
+                    <Text className="text-gray-400 font-bold text-lg">Visual Engine Standby</Text>
+                    <Text className="text-gray-500 font-medium text-xs uppercase tracking-widest">Select two players to generate tactical profile</Text>
+                  </div>
+                } 
+              />
             </motion.div>
           ) : (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.4 }} className="space-y-8">
-              
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.98 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              exit={{ opacity: 0, scale: 0.98 }} 
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} 
+              className="space-y-8"
+            >
               <Row gutter={[32, 32]}>
-                {/* Radar Chart */}
+                {/* Radar Chart Card */}
                 <Col xs={24} lg={12}>
-                  <Card className="glass-card h-full border-none shadow-none bg-gray-50/30 dark:bg-dark-900/40 p-4">
-                    <div className="flex items-center gap-3 mb-8">
-                      <TrendingUp className="w-5 h-5 text-indigo-500" />
-                      <Text className="text-sm font-black uppercase tracking-widest">Tactical Profile Overlay</Text>
+                  <Card className="glass-card h-full border-none shadow-2xl shadow-black/5 bg-white/50 dark:bg-dark-900/40 p-2 overflow-hidden">
+                    <div className="flex items-center justify-between mb-8 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                          <TrendingUp className="w-4 h-4 text-indigo-500" />
+                        </div>
+                        <Text className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Tactical Profile Overlay</Text>
+                      </div>
                     </div>
-                    <div className="h-[400px]">
+                    
+                    <div className="h-[450px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
+                        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
                           <PolarGrid stroke="rgba(156, 163, 175, 0.1)" />
-                          <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} />
+                          <PolarAngleAxis 
+                            dataKey="subject" 
+                            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }} 
+                          />
                           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                           <Radar
                             name={pAData.name}
                             dataKey="A"
                             stroke={COLORS.playerA}
+                            strokeWidth={3}
                             fill={COLORS.playerA}
-                            fillOpacity={0.4}
+                            fillOpacity={0.25}
                           />
                           <Radar
                             name={pBData.name}
                             dataKey="B"
                             stroke={COLORS.playerB}
+                            strokeWidth={3}
                             fill={COLORS.playerB}
-                            fillOpacity={0.4}
+                            fillOpacity={0.25}
                           />
                           <RechartsTooltip 
-                             contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '12px', padding: '12px' }}
-                             itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                             contentStyle={{ 
+                               backgroundColor: 'rgba(17, 24, 39, 0.95)', 
+                               border: '1px solid rgba(255, 255, 255, 0.1)', 
+                               borderRadius: '16px', 
+                               padding: '16px',
+                               backdropFilter: 'blur(10px)',
+                               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
+                             }}
+                             itemStyle={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                           />
                         </RadarChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="flex justify-center gap-8 mt-4">
-                       <div className="flex items-center gap-2">
-                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.playerA }} />
-                         <Text className="text-xs font-bold text-gray-500">{pAData.name}</Text>
+
+                    <div className="flex flex-wrap justify-center gap-8 mb-4 px-4">
+                       <div className="flex items-center gap-3 bg-white/5 dark:bg-dark-800/50 px-4 py-2 rounded-2xl border border-gray-100 dark:border-dark-700">
+                         <div className="w-3 h-3 rounded-full shadow-lg shadow-indigo-500/50" style={{ backgroundColor: COLORS.playerA }} />
+                         <div className="flex flex-col">
+                           <Text className="text-[10px] uppercase font-black tracking-widest text-gray-400">Primary</Text>
+                           <Text className="text-sm font-bold text-gray-900 dark:text-white leading-none">{pAData.name}</Text>
+                         </div>
                        </div>
-                       <div className="flex items-center gap-2">
-                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.playerB }} />
-                         <Text className="text-xs font-bold text-gray-500">{pBData.name}</Text>
+                       <div className="flex items-center gap-3 bg-white/5 dark:bg-dark-800/50 px-4 py-2 rounded-2xl border border-gray-100 dark:border-dark-700">
+                         <div className="w-3 h-3 rounded-full shadow-lg shadow-cyan-500/50" style={{ backgroundColor: COLORS.playerB }} />
+                         <div className="flex flex-col">
+                           <Text className="text-[10px] uppercase font-black tracking-widest text-gray-400">Target</Text>
+                           <Text className="text-sm font-bold text-gray-900 dark:text-white leading-none">{pBData.name}</Text>
+                         </div>
                        </div>
                     </div>
                   </Card>
                 </Col>
 
-                {/* Comparison Table & Insight */}
+                {/* Info Column */}
                 <Col xs={24} lg={12} className="space-y-8">
-                   {/* Tactical Insight Badge */}
+                   {/* Tactical Insight Card */}
                    <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }} 
-                    animate={{ scale: 1, opacity: 1 }}
-                    className={`p-6 rounded-3xl border-2 flex items-start gap-4 ${
-                      tacticalInsight.type === 'danger' ? 'bg-red-500/5 border-red-500/20 text-red-500' :
-                      tacticalInsight.type === 'warning' ? 'bg-amber-500/5 border-amber-500/20 text-amber-500' :
-                      tacticalInsight.type === 'success' ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-500' :
-                      'bg-indigo-500/5 border-indigo-500/20 text-indigo-500'
+                    initial={{ x: 20, opacity: 0 }} 
+                    animate={{ x: 0, opacity: 1 }}
+                    className={`p-8 rounded-[2rem] border flex items-start gap-5 shadow-2xl shadow-black/5 relative overflow-hidden transition-colors duration-500 ${
+                      tacticalInsight.type === 'danger' ? 'bg-red-500/5 border-red-500/20' :
+                      tacticalInsight.type === 'warning' ? 'bg-amber-500/5 border-amber-500/20' :
+                      tacticalInsight.type === 'success' ? 'bg-emerald-500/5 border-emerald-500/20' :
+                      'bg-indigo-500/5 border-indigo-500/20'
                     }`}
                    >
-                     {tacticalInsight.type === 'danger' ? <ShieldAlert className="w-6 h-6 flex-shrink-0" /> : <Zap className="w-6 h-6 flex-shrink-0" />}
-                     <div>
-                       <Title level={5} className="!m-0 !text-inherit font-black uppercase tracking-tighter italic">Tactical Insight</Title>
-                       <Text className="text-sm font-medium opacity-80">{tacticalInsight.message}</Text>
+                     {/* Glow Decoration */}
+                     <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full blur-[80px] opacity-20 ${
+                        tacticalInsight.type === 'danger' ? 'bg-red-500' :
+                        tacticalInsight.type === 'warning' ? 'bg-amber-500' :
+                        tacticalInsight.type === 'success' ? 'bg-emerald-500' :
+                        'bg-indigo-500'
+                     }`} />
+
+                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 border transition-colors duration-500 ${
+                        tacticalInsight.type === 'danger' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
+                        tacticalInsight.type === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
+                        tacticalInsight.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
+                        'bg-indigo-500/10 border-indigo-500/20 text-indigo-500'
+                     }`}>
+                       {tacticalInsight.type === 'danger' ? <ShieldAlert className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
+                     </div>
+
+                     <div className="relative z-10 flex-1">
+                       <Title level={5} className={`!m-0 font-black uppercase tracking-widest text-[11px] mb-2 ${
+                          tacticalInsight.type === 'danger' ? 'text-red-500' :
+                          tacticalInsight.type === 'warning' ? 'text-amber-500' :
+                          tacticalInsight.type === 'success' ? 'text-emerald-500' :
+                          'text-indigo-500'
+                       }`}>Tactical Insight Engine</Title>
+                       <Text className="text-base font-medium text-gray-700 dark:text-gray-300 leading-relaxed block">{tacticalInsight.message}</Text>
                      </div>
                    </motion.div>
 
-                   {/* Stats Table */}
-                   <Card className="glass-card border-none shadow-none p-0 overflow-hidden">
-                      <div className="p-6 border-b border-gray-100 dark:border-dark-800 flex items-center gap-3">
-                        <Info className="w-5 h-5 text-gray-400" />
-                        <Text className="text-sm font-black uppercase tracking-widest">Head-to-Head Totals</Text>
+                   {/* Stats Table Card */}
+                   <Card className="glass-card border-none shadow-2xl shadow-black/5 p-0 overflow-hidden bg-white/50 dark:bg-dark-900/40">
+                      <div className="p-8 border-b border-gray-100 dark:border-dark-800 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-dark-800 flex items-center justify-center">
+                            <Info className="w-4 h-4 text-gray-400" />
+                          </div>
+                          <Text className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Head-to-Head Registry</Text>
+                        </div>
                       </div>
                       <Table 
                         dataSource={tableData} 
                         columns={columns} 
                         pagination={false} 
-                        className="custom-antd-table"
+                        className="custom-antd-table-sync"
                         rowKey="label"
+                        scroll={{ x: true }}
                       />
                    </Card>
                 </Col>
@@ -296,34 +370,111 @@ export default function PlayerMatchup() {
       </div>
 
       <style jsx global>{`
-        .custom-select .ant-select-selector {
+        /* Sync Select Styles */
+        .custom-select-sync .ant-select-selector {
           background: rgba(156, 163, 175, 0.05) !important;
-          border-radius: 12px !important;
+          border-radius: 16px !important;
           border: 2px solid rgba(156, 163, 175, 0.1) !important;
-          height: 48px !important;
+          height: 52px !important;
           display: flex !important;
           align-items: center !important;
-          font-weight: 700 !important;
+          font-weight: 600 !important;
+          padding: 0 16px !important;
+          box-shadow: none !important;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
         }
-        .dark .custom-select .ant-select-selector {
-          background: rgba(31, 41, 55, 0.5) !important;
+        
+        .dark .custom-select-sync .ant-select-selector {
+          background: rgba(31, 41, 55, 0.4) !important;
+          border-color: rgba(75, 85, 99, 0.2) !important;
+          color: #f3f4f6 !important;
+        }
+
+        .custom-select-sync.ant-select-focused .ant-select-selector {
+          border-color: #4f46e5 !important;
+          background: rgba(79, 70, 229, 0.05) !important;
+          box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
+        }
+
+        .custom-select-sync .ant-select-selection-placeholder {
+          color: #9ca3af !important;
+          font-weight: 500 !important;
+        }
+
+        /* Dropdown Styling */
+        .custom-dropdown-sync {
+          background: rgba(255, 255, 255, 0.95) !important;
+          backdrop-filter: blur(20px) !important;
+          border-radius: 20px !important;
+          border: 1px solid rgba(0, 0, 0, 0.05) !important;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+          padding: 8px !important;
+          overflow: hidden !important;
+        }
+
+        .dark .custom-dropdown-sync {
+          background: rgba(17, 24, 39, 0.95) !important;
+          border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .custom-dropdown-sync .ant-select-item {
+          border-radius: 12px !important;
+          margin: 2px 0 !important;
+          padding: 10px 16px !important;
+          font-weight: 500 !important;
+          color: #4b5563 !important;
+          transition: all 0.2s !important;
+        }
+
+        .dark .custom-dropdown-sync .ant-select-item {
+          color: #d1d5db !important;
+        }
+
+        .custom-dropdown-sync .ant-select-item-option-active {
+          background: rgba(79, 70, 229, 0.08) !important;
+          color: #4f46e5 !important;
+        }
+
+        .custom-dropdown-sync .ant-select-item-option-selected {
+          background: #4f46e5 !important;
           color: white !important;
         }
-        .custom-antd-table .ant-table {
+
+        /* Table Styling Sync */
+        .custom-antd-table-sync .ant-table {
           background: transparent !important;
         }
-        .custom-antd-table .ant-table-thead > tr > th {
-          background: rgba(156, 163, 175, 0.05) !important;
-          color: #9ca3af !important;
+        
+        .custom-antd-table-sync .ant-table-thead > tr > th {
+          background: rgba(156, 163, 175, 0.03) !important;
+          color: #64748b !important;
           font-size: 10px !important;
+          font-weight: 800 !important;
           text-transform: uppercase !important;
-          letter-spacing: 0.1em !important;
-          border-bottom: 2px solid rgba(156, 163, 175, 0.1) !important;
+          letter-spacing: 0.15em !important;
+          padding: 24px 32px !important;
+          border-bottom: 2px solid rgba(156, 163, 175, 0.05) !important;
         }
-        .custom-antd-table .ant-table-tbody > tr > td {
+
+        .dark .custom-antd-table-sync .ant-table-thead > tr > th {
+          color: #94a3b8 !important;
+          border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        }
+        
+        .custom-antd-table-sync .ant-table-tbody > tr > td {
+          padding: 24px 32px !important;
           border-bottom: 1px solid rgba(156, 163, 175, 0.05) !important;
         }
-        .custom-antd-table .ant-table-tbody > tr:hover > td {
+
+        .dark .custom-antd-table-sync .ant-table-tbody > tr > td {
+          border-bottom-color: rgba(255, 255, 255, 0.03) !important;
+        }
+
+        .custom-antd-table-sync .ant-table-tbody > tr:hover > td {
+          background: rgba(79, 70, 229, 0.03) !important;
+        }
+
+        .dark .custom-antd-table-sync .ant-table-tbody > tr:hover > td {
           background: rgba(79, 70, 229, 0.05) !important;
         }
       `}</style>
