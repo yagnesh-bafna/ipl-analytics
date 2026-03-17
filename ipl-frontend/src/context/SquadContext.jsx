@@ -10,16 +10,24 @@ export function SquadProvider({ children }) {
 
   // Load from DB on init
   useEffect(() => {
-    if (!user) {
-      setSquad([])
-      return
-    }
+    // Clear squad immediately when user changes (or logs out)
+    setSquad([])
+    
+    if (!user) return
+
     apiLoadTeam(user.id).then(({ ok, data }) => {
-      if (ok && data.dream_team && data.dream_team !== '[]') {
-        try {
-          setSquad(JSON.parse(data.dream_team))
-        } catch (e) {
-          console.error("Failed to parse squad:", e)
+      if (ok) {
+        // Only parse if we have valid non-empty data
+        if (data.dream_team && data.dream_team !== '[]' && data.dream_team !== 'null') {
+          try {
+            setSquad(JSON.parse(data.dream_team))
+          } catch (e) {
+            console.error("Failed to parse squad:", e)
+            setSquad([])
+          }
+        } else {
+          // Explicitly set to empty if backend has no data
+          setSquad([])
         }
       }
     })
