@@ -1,7 +1,16 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, redirect
 import sqlite3
 import hashlib
+import os
+from dotenv import load_dotenv
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 from database.connect_db import get_connection
+
+# Load environment variables
+load_dotenv()
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -277,3 +286,93 @@ def get_user_stats():
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
+
+@auth_bp.route("/redirect")
+def google_redirect():
+    # If using ux_mode='redirect', Google returns here with params.
+    # However, since we are a SPA, it's usually better to redirect to the frontend.
+    # We can just redirect the user back to the frontend Auth page.
+    return redirect("http://localhost:5173/auth")
+
+@auth_bp.route("/api/google-login", methods=["POST"])
+def google_login():
+    data = request.json
+    token = data.get("token")
+    
+    if not token:
+        return jsonify({"error": "Google token missing"}), 400
+        
+    try:
+        # Verify the Google ID Token
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
+        
+        # ID token is valid. Get user details from Google
+        google_id = idinfo['sub']
+        email = idinfo['email']
+        name = idinfo.get('name', email.split('@')[0])
+        
+        conn = get_connection()
+        if conn is None:
+            return jsonify({"error": "Database error"}), 500
+            
+        c = conn.cursor()
+        
+        # Check if user already exists
+        c.execute("SELECT id, username, email, role, is_suspended FROM users WHERE email = %s", (email,))
+        user_row = c.fetchone()
+        
+        if user_row:
+            # User exists, log them in
+            user_data = {
+                "id": user_row[0],
+                "username": user_row[1],
+                "email": user_row[2],
+                "role": user_row[3] or "user"
+            }
+            is_suspended = user_row[4]
+            conn.close()
+            
+            if is_suspended:
+                return jsonify({"error": "Account suspended"}), 403
+                
+            return jsonify({"message": "Login successful", "user": user_data}), 200
+        else:
+            # User doesn't exist, create new one with role 'user'
+            # For simplicity, we use email as a starting point for username if it's unique
+            username = email.split('@')[0]
+            
+            # Check if username is taken, append random if needed (keeping it simple here)
+            c.execute("SELECT id FROM users WHERE username = %s", (username,))
+            if c.fetchone():
+                username = f"{username}_{google_id[:5]}"
+                
+            # Random password hash for Google users (they won't use it, but column is NOT NULL)
+            dummy_hash = hash_password(os.urandom(16).hex())
+            
+            try:
+                c.execute(
+                    "INSERT INTO users (username, email, password_hash, role) VALUES (%s, %s, %s, %s) RETURNING id",
+                    (username, email, dummy_hash, "user")
+                )
+                new_id = c.fetchone()[0]
+                conn.commit()
+                
+                user_data = {
+                    "id": new_id,
+                    "username": username,
+                    "email": email,
+                    "role": "user"
+                }
+                conn.close()
+                return jsonify({"message": "User created via Google", "user": user_data}), 201
+            except Exception as e:
+                conn.rollback()
+                conn.close()
+                return jsonify({"error": f"Failed to create user: {str(e)}"}), 500
+                
+    except ValueError as e:
+        # Invalid token
+        return jsonify({"error": "Invalid Google token"}), 401
+    except Exception as e:
+        print(f"Google Login error: {e}")
+        return jsonify({"error": "Internal server error"}), 500

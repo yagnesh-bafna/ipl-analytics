@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
 import Header from '../components/layout/Header'
 import { PageLoader } from '../components/ui/Spinner'
-import PlayerModal from '../components/shared/PlayerModal'
 import { fetchMatrix } from '../lib/api'
 import { useApi } from '../hooks/useApi'
 import { Search } from 'lucide-react'
@@ -30,9 +30,9 @@ function getRec(cat = '', age) {
 }
 
 export default function Auction() {
+  const navigate = useNavigate()
   const { data, loading } = useApi(fetchMatrix)
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState(null)
 
   const filtered = useMemo(() => {
     if (!data) return []
@@ -85,7 +85,7 @@ export default function Auction() {
                         <tr key={i} className="hover:bg-gray-100/30 dark:hover:bg-dark-800/20 transition-colors">
                           <td className="py-4 px-6">
                             <button 
-                              onClick={() => setSelected(p.player)} 
+                              onClick={() => navigate(`/player/${p.player}?type=Auction`)} 
                               className="font-bold text-primary-500 hover:text-primary-400 hover:underline text-base"
                             >
                               {p.player}
@@ -110,8 +110,6 @@ export default function Auction() {
           )}
         </div>
       </div>
-
-      {selected && <PlayerModal name={selected} onClose={() => setSelected(null)} />}
     </Layout>
   )
 }

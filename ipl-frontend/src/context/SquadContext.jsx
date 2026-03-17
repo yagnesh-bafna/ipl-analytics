@@ -45,7 +45,6 @@ export function SquadProvider({ children }) {
 
     const next = [...squad, { name: player, type, country, role: null }]
     setSquad(next)
-    alert(`${player} added to draft registry.`)
     return true
   }
 

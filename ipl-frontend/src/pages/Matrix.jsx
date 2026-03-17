@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
 import Header from '../components/layout/Header'
 import { PageLoader } from '../components/ui/Spinner'
-import PlayerModal from '../components/shared/PlayerModal'
 import { fetchMatrix } from '../lib/api'
 import { useApi } from '../hooks/useApi'
 import { Search } from 'lucide-react'
@@ -16,13 +16,35 @@ const CATEGORIES = {
   'Replacement Level':{ color: '#94a3b8', badge: 'bg-slate-500/10 text-slate-400' },
 }
 
+const MatrixTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload
+    return (
+      <div className="bg-dark-900/95 backdrop-blur-md border border-dark-700 p-3 rounded-xl shadow-2xl text-xs">
+        <p className="font-bold text-white mb-1.5 border-b border-dark-700 pb-1">{data.name}</p>
+        <div className="space-y-1">
+          <p className="text-gray-400 flex justify-between gap-4">
+            <span>Consistency:</span>
+            <span className="font-mono text-primary-400">{payload[0].value.toFixed(2)}</span>
+          </p>
+          <p className="text-gray-400 flex justify-between gap-4">
+            <span>Explosiveness:</span>
+            <span className="font-mono text-secondary-400">{payload[1].value.toFixed(2)}</span>
+          </p>
+        </div>
+      </div>
+    )
+  }
+  return null
+}
+
 import { useSquad } from '../context/SquadContext'
 
 export default function Matrix() {
+  const navigate = useNavigate()
   const { addToSquad } = useSquad()
   const { data, loading } = useApi(fetchMatrix)
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState(null)
 
   const filtered = useMemo(() => {
     if (!data) return []
@@ -97,15 +119,11 @@ export default function Matrix() {
                       tickFormatter={v => v.toFixed(2)}
                       label={{ value: 'EXPLOSIVENESS', fill: '#94a3b8', fontSize: 10, fontWeight: 800, angle: -90, position: 'insideLeft', offset: 10 }} 
                     />
-                    <Tooltip 
-                      cursor={{ strokeDasharray: '3 3', stroke: '#6366f1', strokeWidth: 2 }} 
-                      contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: 12, fontSize: 12, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)' }} 
-                      formatter={(v, n, props) => [`${props.payload?.name}: ${v.toFixed(2)}`, '']}
-                    />
+                    <Tooltip content={<MatrixTooltip />} />
                     <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700, paddingTop: 20 }} />
                     {dataset.map(({ name, data, fill }) => (
                       <Scatter key={name} name={name} data={data} fill={fill} fillOpacity={0.6}
-                        onClick={d => setSelected(d.name)} style={{ cursor: 'pointer' }} />
+                        onClick={d => navigate(`/player/${d.name}?type=Matrix`)} style={{ cursor: 'pointer' }} />
                     ))}
                   </ScatterChart>
                 </ResponsiveContainer>
@@ -130,7 +148,7 @@ export default function Matrix() {
                         const { badge } = CATEGORIES[cat] || {}
                         return (
                           <tr key={i} className="hover:bg-gray-100/50 dark:hover:bg-dark-800/30 transition-colors">
-                            <td className="py-4 px-6"><button onClick={() => setSelected(p.player)} className="font-bold text-primary-500 hover:text-primary-400 hover:underline">{p.player}</button></td>
+                            <td className="py-4 px-6"><button onClick={() => navigate(`/player/${p.player}?type=Matrix`)} className="font-bold text-primary-500 hover:text-primary-400 hover:underline">{p.player}</button></td>
                             <td className="py-4 px-6"><span className={`badge ${badge} text-xs font-bold`}>{cat}</span></td>
                             <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{p.runs || 0}</td>
                             <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{(p.strike_rate || 0).toFixed(1)}</td>
@@ -146,8 +164,6 @@ export default function Matrix() {
           )}
         </div>
       </div>
-
-      {selected && <PlayerModal name={selected} onClose={() => setSelected(null)} onAdd={addToSquad} type="Matrix" />}
     </Layout>
   )
 }

@@ -92,7 +92,7 @@ export default function Contact() {
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-4 sm:space-y-6">
               {[
                 { icon: Mail,    title: 'Strategic Support', desc: 'support@iplsolver.io', value: 'contact@iplsolver.io' },
-                { icon: Clock,   title: 'Response Latency',  desc: 'Average: < 24 Hours', value: 'Within 24 business hours' },
+                { icon: Clock,   title: 'Response Latency',  desc: '',                      value: 'Within 24 business hours' },
                 { icon: MapPin,  title: 'Operations Center', desc: 'Mumbai / Remote',      value: 'IPL Analytics Division' },
               ].map(({ icon: Icon, title, desc, value }) => (
                 <div key={title} className="glass-card flex items-start gap-4 p-5 sm:p-6 group hover:translate-x-1 transition-all duration-300">

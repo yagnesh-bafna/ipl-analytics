@@ -146,17 +146,25 @@ def player_matrix():
         bat_metrics = batting_metrics(batting)
         bowl_metrics = bowling_metrics(bowling)
         
-        # Standardize Batter Data
+        # Prepare Batter Data
         bat_part = bat_metrics[["player", "runs", "strike_rate", "consistency", "boundary_pct"]].copy()
         bat_part["type"] = "Batter"
         bat_part["cons_val"] = bat_part["consistency"]
         bat_part["exp_val"] = (bat_part["strike_rate"] * 0.5) + (bat_part["boundary_pct"] * 0.5)
         
-        # Standardize Bowler Data
+        # Normalize Batting
+        bat_part["norm_cons"] = normalize(bat_part["cons_val"].fillna(0))
+        bat_part["norm_exp"] = normalize(bat_part["exp_val"].fillna(0))
+        
+        # Prepare Bowler Data
         bowl_part = bowl_metrics[["player", "wickets", "economy", "strike_rate"]].copy()
         bowl_part["type"] = "Bowler"
         bowl_part["cons_val"] = 12 - bowl_part["economy"] 
         bowl_part["exp_val"] = 30 - bowl_part["strike_rate"]
+        
+        # Normalize Bowling
+        bowl_part["norm_cons"] = normalize(bowl_part["cons_val"].fillna(0))
+        bowl_part["norm_exp"] = normalize(bowl_part["exp_val"].fillna(0))
         
         df = pd.concat([bat_part, bowl_part], ignore_index=True)
         
@@ -169,11 +177,9 @@ def player_matrix():
         conn.close()
 
         df = df.merge(players_df, left_on="player", right_on="player_name", how="left")
-            
-        df["norm_cons"] = normalize(df["cons_val"].fillna(0))
-        df["norm_exp"] = normalize(df["exp_val"].fillna(0))
         
-        # Deduplicate: Prioritize the row with higher overall metrics (for All-Rounders)
+        # Deduplicate: Prioritize the row with higher overall metrics within its type
+        # For All-Rounders, this will keep the version (Batter or Bowler) where they are relatively more impactful
         df["impact_score"] = df["norm_cons"] + df["norm_exp"]
         df = df.sort_values("impact_score", ascending=False).drop_duplicates("player")
         

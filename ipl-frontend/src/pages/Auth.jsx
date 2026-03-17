@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BarChart3, Eye, EyeOff } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { apiLogin, apiSignup } from '../lib/api'
+import { apiLogin, apiSignup, apiGoogleLogin } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { GoogleLogin } from '@react-oauth/google'
 
 function InputField({ label, id, type = 'text', placeholder, value, onChange }) {
   const [show, setShow] = useState(false)
@@ -85,6 +86,14 @@ export default function Auth() {
     else setError(data.error || 'Signup failed')
   }
 
+  const handleGoogleLogin = async (credentialResponse) => {
+    setLoading(true); setError('')
+    const { ok, data } = await apiGoogleLogin(credentialResponse.credential)
+    setLoading(false)
+    if (ok) { login(data.user); navigate('/dashboard') }
+    else setError(data.error || 'Google login failed')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-950 flex items-center justify-center p-4">
       <motion.div
@@ -155,6 +164,21 @@ export default function Auth() {
               >
                 {loading ? 'Please wait...' : tab === 'login' ? 'Sign In to Dashboard' : 'Create Account'}
               </button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-dark-700"></div></div>
+                <div className="relative flex justify-center text-[10px] uppercase tracking-wider text-gray-400"><span className="bg-white dark:bg-dark-800 px-2">Or continue with</span></div>
+              </div>
+
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleLogin}
+                  onError={() => setError('Google Authentication Failed. Ensure http://localhost:5173 is allowed in Google Console.')}
+                  useOneTap
+                  theme="filled_blue"
+                  shape="pill"
+                />
+              </div>
             </motion.div>
           </AnimatePresence>
         </div>

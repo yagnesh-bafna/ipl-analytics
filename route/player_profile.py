@@ -39,6 +39,7 @@ def player_profile(player_name):
         season,
         SUM(runs) AS runs,
         SUM(balls) AS balls,
+        COUNT(DISTINCT match_title) AS matches,
         AVG(strike_rate) AS strike_rate
     FROM batting_stats
     WHERE player = %s
@@ -52,6 +53,8 @@ def player_profile(player_name):
     SELECT
         season,
         SUM(wickets) AS wickets,
+        SUM(dot_balls) AS dot_balls,
+        COUNT(DISTINCT match_title) AS matches,
         AVG(economy) AS economy
     FROM bowling_stats
     WHERE bowler = %s

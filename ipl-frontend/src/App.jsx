@@ -13,6 +13,7 @@ import DreamTeam from './pages/DreamTeam'
 import Auction from './pages/Auction'
 import Contact from './pages/Contact'
 import AdminUsers from './pages/AdminUsers'
+import PlayerProfile from './pages/PlayerProfile'
 
 import { SquadProvider } from './context/SquadContext'
 
@@ -45,6 +46,7 @@ export default function App() {
                 <Route path="/dream-team" element={<PrivateRoute><DreamTeam /></PrivateRoute>} />
                 <Route path="/auction"   element={<PrivateRoute><Auction /></PrivateRoute>} />
                 <Route path="/contact"   element={<PrivateRoute><Contact /></PrivateRoute>} />
+                <Route path="/player/:name" element={<PrivateRoute><PlayerProfile /></PrivateRoute>} />
                 
                 {/* Admin only */}
                 <Route path="/admin/users" element={<PrivateRoute adminOnly><AdminUsers /></PrivateRoute>} />

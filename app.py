@@ -26,6 +26,11 @@ app.register_blueprint(auction_bp)
 app.register_blueprint(contact_bp)
 app.register_blueprint(auth_bp)
 
+@app.after_request
+def add_header(response):
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin-allow-popups'
+    return response
+
 
 # -----------------------------
 # HOME PAGE (WEB APP)

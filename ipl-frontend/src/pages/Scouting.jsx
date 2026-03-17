@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
 import Header from '../components/layout/Header'
 import { PageLoader } from '../components/ui/Spinner'
-import PlayerModal from '../components/shared/PlayerModal'
 import { fetchBatting, fetchBowling, fetchAllRounder } from '../lib/api'
 import { useApi } from '../hooks/useApi'
-import { Search, PlusCircle, ChevronUp, ChevronDown } from 'lucide-react'
+import { Search, PlusCircle, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react'
 
 const CONFIG = {
   batting: {
@@ -62,14 +62,16 @@ const formatCountry = (c) => {
 import { useSquad } from '../context/SquadContext'
 
 export default function Scouting({ type }) {
-  const { addToSquad } = useSquad()
+  const navigate = useNavigate()
+  const { squad, addToSquad, removeFromSquad } = useSquad()
   const cfg = CONFIG[type] || CONFIG.batting
   const { data, loading } = useApi(cfg.apiFn, [type])
 
   const [search,   setSearch]   = useState('')
   const [sortKey,  setSortKey]  = useState(null)
   const [sortDir,  setSortDir]  = useState('desc')
-  const [selected, setSelected] = useState(null)
+
+  const isInSquad = (name) => squad.some(p => p.name === name)
 
   const filtered = useMemo(() => {
     if (!data) return []
@@ -157,7 +159,7 @@ export default function Scouting({ type }) {
                             {col.key === cfg.nameKey ? (
                               <div className="flex flex-col">
                                 <button
-                                  onClick={() => setSelected(name)}
+                                  onClick={() => navigate(`/player/${name}?type=${type}`)}
                                   className="font-bold text-primary-500 hover:text-primary-400 hover:underline text-left text-base"
                                 >{name}</button>
                                 <span className={`text-[10px] uppercase font-black tracking-widest ${isOs ? 'text-secondary-500' : 'text-gray-400'}`}>
@@ -172,12 +174,21 @@ export default function Scouting({ type }) {
                           </td>
                         ))}
                         <td className="py-4 px-6">
-                          <button
-                            onClick={() => addToSquad(name, type, country)}
-                            className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary-500 transition-all group"
-                          >
-                            <PlusCircle className="w-5 h-5 group-hover:scale-110 transition-transform" /> Add
-                          </button>
+                          {isInSquad(name) ? (
+                            <button
+                              onClick={() => removeFromSquad(name)}
+                              className="flex items-center gap-2 text-sm font-bold text-primary-500 transition-all group"
+                            >
+                              <CheckCircle className="w-5 h-5" /> Added
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => addToSquad(name, type, country)}
+                              className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary-500 transition-all group"
+                            >
+                              <PlusCircle className="w-5 h-5 group-hover:scale-110 transition-transform" /> Add
+                            </button>
+                          )}
                         </td>
                       </tr>
                     )
@@ -188,15 +199,6 @@ export default function Scouting({ type }) {
           )}
         </motion.div>
       </div>
-
-      {selected && (
-        <PlayerModal 
-          name={selected} 
-          onClose={() => setSelected(null)} 
-          onAdd={addToSquad}
-          type={type}
-        />
-      )}
     </Layout>
   )
 }

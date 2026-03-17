@@ -5,11 +5,17 @@ import App from './App'
 // Fixing import for React 18
 import { createRoot } from 'react-dom/client'
 
+import { GoogleOAuthProvider } from '@react-oauth/google'
+
 const container = document.getElementById('root')
 const root = createRoot(container)
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
+
 root.render(
   <React.StrictMode>
-    <App />
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <App />
+    </GoogleOAuthProvider>
   </React.StrictMode>
 )
