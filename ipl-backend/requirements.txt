@@ -6,3 +6,4 @@ beautifulsoup4
 python-dotenv
 google-auth
 psycopg2-binary
+gunicorn
