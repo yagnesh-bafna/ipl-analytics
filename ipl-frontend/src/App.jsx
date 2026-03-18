@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
+import { PageLoader } from './components/ui/Spinner'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { SquadProvider } from './context/SquadContext'
@@ -7,16 +8,16 @@ import { UIProvider } from './context/UIContext'
 
 // Pages
 import Landing from './pages/Landing'
-import Auth from './pages/Auth'
-import Dashboard from './pages/Dashboard'
-import Scouting from './pages/Scouting'
-import Matrix from './pages/Matrix'
-import DreamTeam from './pages/DreamTeam'
-import Auction from './pages/Auction'
-import Contact from './pages/Contact'
-import AdminUsers from './pages/AdminUsers'
-import PlayerProfile from './pages/PlayerProfile'
-import PlayerMatchup from './pages/PlayerMatchup'
+const Auth = lazy(() => import('./pages/Auth'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Scouting = lazy(() => import('./pages/Scouting'))
+const Matrix = lazy(() => import('./pages/Matrix'))
+const DreamTeam = lazy(() => import('./pages/DreamTeam'))
+const Auction = lazy(() => import('./pages/Auction'))
+const Contact = lazy(() => import('./pages/Contact'))
+const AdminUsers = lazy(() => import('./pages/AdminUsers'))
+const PlayerProfile = lazy(() => import('./pages/PlayerProfile'))
+const PlayerMatchup = lazy(() => import('./pages/PlayerMatchup'))
 
 function PrivateRoute({ children, adminOnly = false }) {
   const { user } = useAuth()
@@ -32,27 +33,29 @@ export default function App() {
         <SquadProvider>
           <UIProvider>
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/auth" element={<Auth />} />
-                
-                {/* User & Admin shared/protected */}
-                <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-                <Route path="/batting"   element={<PrivateRoute><Scouting type="batting" /></PrivateRoute>} />
-                <Route path="/bowling"   element={<PrivateRoute><Scouting type="bowling" /></PrivateRoute>} />
-                <Route path="/all-rounder" element={<PrivateRoute><Scouting type="all_rounder" /></PrivateRoute>} />
-                <Route path="/matrix"    element={<PrivateRoute><Matrix /></PrivateRoute>} />
-                <Route path="/dream-team" element={<PrivateRoute><DreamTeam /></PrivateRoute>} />
-                <Route path="/matchup"    element={<PrivateRoute><PlayerMatchup /></PrivateRoute>} />
-                <Route path="/auction"   element={<PrivateRoute><Auction /></PrivateRoute>} />
-                <Route path="/contact"   element={<PrivateRoute><Contact /></PrivateRoute>} />
-                <Route path="/player/:name" element={<PrivateRoute><PlayerProfile /></PrivateRoute>} />
-                
-                {/* Admin only */}
-                <Route path="/admin/users" element={<PrivateRoute adminOnly><AdminUsers /></PrivateRoute>} />
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/auth" element={<Auth />} />
+                  
+                  {/* User & Admin shared/protected */}
+                  <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                  <Route path="/batting"   element={<PrivateRoute><Scouting type="batting" /></PrivateRoute>} />
+                  <Route path="/bowling"   element={<PrivateRoute><Scouting type="bowling" /></PrivateRoute>} />
+                  <Route path="/all-rounder" element={<PrivateRoute><Scouting type="all_rounder" /></PrivateRoute>} />
+                  <Route path="/matrix"    element={<PrivateRoute><Matrix /></PrivateRoute>} />
+                  <Route path="/dream-team" element={<PrivateRoute><DreamTeam /></PrivateRoute>} />
+                  <Route path="/matchup"    element={<PrivateRoute><PlayerMatchup /></PrivateRoute>} />
+                  <Route path="/auction"   element={<PrivateRoute><Auction /></PrivateRoute>} />
+                  <Route path="/contact"   element={<PrivateRoute><Contact /></PrivateRoute>} />
+                  <Route path="/player/:name" element={<PrivateRoute><PlayerProfile /></PrivateRoute>} />
+                  
+                  {/* Admin only */}
+                  <Route path="/admin/users" element={<PrivateRoute adminOnly><AdminUsers /></PrivateRoute>} />
 
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </Suspense>
             </BrowserRouter>
           </UIProvider>
         </SquadProvider>
