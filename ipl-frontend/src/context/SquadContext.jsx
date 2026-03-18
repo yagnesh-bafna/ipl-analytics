@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { loadTeam as apiLoadTeam } from '../lib/api'
+import { loadTeam as apiLoadTeam } from '../lib/api.js'
 import { useAuth } from './AuthContext'
 
 const SquadContext = createContext()

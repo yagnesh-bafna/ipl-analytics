@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { fetchPlayerProfile } from '../lib/api'
+import { fetchPlayerProfile } from '../lib/api.js'
 import { useAuth } from '../context/AuthContext'
 import { useSquad } from '../context/SquadContext'
 import { PageLoader } from '../components/ui/Spinner'

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GitCompare, Info, Zap, TrendingUp, ShieldAlert, Target, Shield, Search } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Header from '../components/layout/Header';
-import { fetchBatting, fetchBowling, fetchMatrix } from '../lib/api';
+import { fetchBatting, fetchBowling, fetchMatrix } from '../lib/api.js';
 import { useApi } from '../hooks/useApi';
 
 const { Title, Text } = Typography;

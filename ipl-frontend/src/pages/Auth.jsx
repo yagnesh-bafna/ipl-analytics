@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BarChart3, Eye, EyeOff } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { apiLogin, apiSignup, apiGoogleLogin } from '../lib/api'
+import { apiLogin, apiSignup, apiGoogleLogin } from '../lib/api.js'
 import { useAuth } from '../context/AuthContext'
 import { GoogleLogin } from '@react-oauth/google'
 

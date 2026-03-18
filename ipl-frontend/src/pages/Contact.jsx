@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Layout from '../components/layout/Layout'
 import Header from '../components/layout/Header'
-import { submitContact } from '../lib/api'
+import { submitContact } from '../lib/api.js'
 import { Mail, Send, MapPin, Clock } from 'lucide-react'
 
 export default function Contact() {

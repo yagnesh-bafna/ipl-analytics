@@ -5,11 +5,13 @@ import { useAuth } from '../context/AuthContext'
 import Layout from '../components/layout/Layout'
 import Header from '../components/layout/Header'
 import { PageLoader } from '../components/ui/Spinner'
-import { fetchUserStats, fetchTrending, fetchAdminStats, fetchAdminLogs } from '../lib/api'
+import { fetchUserStats, fetchTrending, fetchAdminStats, fetchAdminLogs } from '../lib/api.js'
 import {
   Layers, Zap, Target, Wind, Grid3x3, Users, TrendingUp, BarChart3, ScrollText
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import LottieAnimation from '../components/ui/LottieAnimation'
+import { useSquad } from '../context/SquadContext'
 
 const cardVariants = {
   hidden:  { opacity: 0, y: 16 },
@@ -38,12 +40,10 @@ function StatCard({ icon: Icon, label, value, color, bg }) {
   )
 }
 
-import LottieAnimation from '../components/ui/LottieAnimation'
 
 const DOTS_ANIM = "https://assets9.lottiefiles.com/packages/lf20_o6py8vdb.json" // Abstract dots
 const CHART_ANIM = "https://assets10.lottiefiles.com/packages/lf20_6wutsrox.json" // Abstract data/nodes
 
-import { useSquad } from '../context/SquadContext'
 
 // User dashboard
 function UserDashboard() {
