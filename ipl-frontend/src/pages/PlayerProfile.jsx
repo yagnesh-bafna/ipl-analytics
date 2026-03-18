@@ -307,9 +307,9 @@ export default function PlayerProfile() {
                 )}
               </div>
 
-              <div className="flex-1 min-h-[400px]">
+              <div className="flex-1 min-h-[400px]" style={{ minHeight: '400px' }}>
                 {selectedYears.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={400}>
                     <ComposedChart 
                       data={graphType === 'batting' ? (data?.batting?.filter(s => selectedYears.includes(s.season))) : (data?.bowling?.filter(s => selectedYears.includes(s.season)))}
                       margin={{ bottom: 30 }}

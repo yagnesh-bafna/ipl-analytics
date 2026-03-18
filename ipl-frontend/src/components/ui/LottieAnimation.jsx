@@ -13,7 +13,7 @@ export default function LottieAnimation({ url, className }) {
       .catch(() => setError(true))
   }, [url])
 
-  if (error) return null
+  if (error) return <div className={`${className} flex items-center justify-center`}><div className="w-2 h-2 rounded-full bg-primary-500/20 animate-pulse" /></div>
   if (!animationData) return <div className={className}><Spinner /></div>
 
   // React 19 / ESM Interop fix: ensure we have a valid component

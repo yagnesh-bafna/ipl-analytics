@@ -20,8 +20,26 @@ from route.all_rounder import all_rounder_bp
 app = Flask(__name__)
 
 # Configure CORS
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-CORS(app, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
+env_origins = os.getenv("ALLOWED_ORIGINS")
+if env_origins:
+    allowed_origins = env_origins.split(",")
+else:
+    allowed_origins = []
+
+# Add common origins
+common_origins = [
+    "http://localhost:5173",
+    "https://ipl-analytics-ten.vercel.app"
+]
+for origin in common_origins:
+    if origin not in allowed_origins:
+        allowed_origins.append(origin)
+
+# If still empty, default to * (but without credentials support)
+if not allowed_origins:
+    CORS(app, resources={r"/*": {"origins": "*"}})
+else:
+    CORS(app, resources={r"/*": {"origins": allowed_origins}}, supports_credentials=True)
 
 # Register routes
 app.register_blueprint(players_bp)
