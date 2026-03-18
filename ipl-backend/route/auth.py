@@ -292,7 +292,8 @@ def google_redirect():
     # If using ux_mode='redirect', Google returns here with params.
     # However, since we are a SPA, it's usually better to redirect to the frontend.
     # We can just redirect the user back to the frontend Auth page.
-    return redirect("http://localhost:5173/auth")
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    return redirect(f"{frontend_url}/auth")
 
 @auth_bp.route("/api/google-login", methods=["POST"])
 def google_login():

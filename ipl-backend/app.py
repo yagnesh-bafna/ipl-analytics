@@ -1,6 +1,10 @@
 import os
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Import all route blueprints
 from route.players import players_bp
@@ -14,7 +18,10 @@ from route.auth import auth_bp
 from route.all_rounder import all_rounder_bp
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+CORS(app, resources={r"/api/*": {"origins": allowed_origins}}, supports_credentials=True)
 
 # Register routes
 app.register_blueprint(players_bp)

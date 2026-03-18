@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { SquadProvider } from './context/SquadContext'
+import { UIProvider } from './context/UIContext'
 
 // Pages
 import Landing from './pages/Landing'
@@ -16,16 +18,12 @@ import AdminUsers from './pages/AdminUsers'
 import PlayerProfile from './pages/PlayerProfile'
 import PlayerMatchup from './pages/PlayerMatchup'
 
-import { SquadProvider } from './context/SquadContext'
-
 function PrivateRoute({ children, adminOnly = false }) {
   const { user } = useAuth()
   if (!user) return <Navigate to="/auth" />
   if (adminOnly && user.role !== 'admin') return <Navigate to="/dashboard" />
   return children
 }
-
-import { UIProvider } from './context/UIContext'
 
 export default function App() {
   return (

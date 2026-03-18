@@ -7,6 +7,7 @@ import { PageLoader } from '../components/ui/Spinner'
 import { fetchBatting, fetchBowling, fetchAllRounder } from '../lib/api'
 import { useApi } from '../hooks/useApi'
 import { Search, PlusCircle, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react'
+import { useSquad } from '../context/SquadContext'
 
 const CONFIG = {
   batting: {
@@ -59,7 +60,6 @@ const formatCountry = (c) => {
   return `${code} Os`
 }
 
-import { useSquad } from '../context/SquadContext'
 
 export default function Scouting({ type }) {
   const navigate = useNavigate()

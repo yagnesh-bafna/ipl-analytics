@@ -8,6 +8,7 @@ import { useApi } from '../hooks/useApi'
 import { useAuth } from '../context/AuthContext'
 import { Trash2, Save, Cpu, Users } from 'lucide-react'
 import clsx from 'clsx'
+import { useSquad } from '../context/SquadContext'
 
 const formatCountry = (c) => {
   if (!c) return 'Ind'
@@ -22,8 +23,6 @@ const TYPE_BADGE = {
   all_rounder:'badge-secondary',
   'Algorithmic Optimization': 'badge-warning',
 }
-
-import { useSquad } from '../context/SquadContext'
 
 export default function DreamTeam() {
   const { user } = useAuth()

@@ -8,6 +8,7 @@ import { fetchMatrix } from '../lib/api'
 import { useApi } from '../hooks/useApi'
 import { Search } from 'lucide-react'
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { useSquad } from '../context/SquadContext'
 
 const CATEGORIES = {
   'Superstar':        { color: '#6366f1', badge: 'bg-primary-500/10 text-primary-400' },
@@ -38,7 +39,6 @@ const MatrixTooltip = ({ active, payload }) => {
   return null
 }
 
-import { useSquad } from '../context/SquadContext'
 
 export default function Matrix() {
   const navigate = useNavigate()
