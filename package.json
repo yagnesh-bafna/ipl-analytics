@@ -1,0 +1,12 @@
+{
+  "name": "ipl-think-tank-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm run build --prefix ipl-frontend",
+    "dev": "npm run dev --prefix ipl-frontend",
+    "preview": "npm run preview --prefix ipl-frontend",
+    "lint": "npm run lint --prefix ipl-frontend",
+    "start-backend": "cd ipl-backend && python app.py"
+  }
+}

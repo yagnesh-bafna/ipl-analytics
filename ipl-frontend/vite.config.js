@@ -3,11 +3,19 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      // Use the light version of lottie-web which doesn't use eval()
+      // This fixes the [EVAL] warning during build
+      'lottie-web': 'lottie-web/build/player/lottie_light.js'
+    }
+  },
   build: {
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       onwarn(warning, warn) {
-        if (warning.code === 'EVAL') return;
+        // Suppress EVAL warnings from lottie-web or others
+        if (warning.code === 'EVAL' || warning.message?.includes('direct `eval`')) return;
         warn(warning);
       },
       output: {
@@ -26,7 +34,8 @@ export default defineConfig({
     // For Rolldown specifically in Vite 8
     rolldownOptions: {
       onLog(level, log) {
-        if (log.code === 'EVAL') return;
+        // Suppress the direct eval warning from lottie-web
+        if (log.code === 'EVAL' || log.message?.includes('direct `eval`')) return false;
       },
       output: {
         manualChunks(id) {
