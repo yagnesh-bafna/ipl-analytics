@@ -55,7 +55,7 @@ export default function AdminUsers() {
                       <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Identity</th>
                       <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Role</th>
                       <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Status</th>
-                      <th className="py-4 px-6 text-right uppercase text-[11px] font-bold tracking-wider text-gray-500">Management</th>
+                      <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Management</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-dark-800">
@@ -77,7 +77,7 @@ export default function AdminUsers() {
                           )}>{u.status}</span>
                         </td>
                         <td className="py-4 px-6">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-start gap-2">
                             <button 
                               onClick={() => handleRemove(u.id)} 
                               className="h-9 px-4 rounded-lg text-xs font-bold transition-all border bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 flex items-center gap-2"
