@@ -1,9 +1,8 @@
-flask
-flask-cors
-pandas
-requests
-beautifulsoup4
-python-dotenv
-google-auth
+Flask
 psycopg2-binary
-gunicorn
+python-dotenv
+Flask-Cors
+requests
+google-auth
+google-auth-oauthlib
+Flask-Mail
