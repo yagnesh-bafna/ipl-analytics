@@ -255,7 +255,7 @@ def score_allrounders(bat, bowl):
     
     # Batting metrics normalization
     merged["norm_sr_bat"] = normalize(merged["strike_rate_bat"])
-    merged["norm_avg"] = normalize(merged["avg"])
+    merged["norm_avg"] = normalize(merged["avg_bat"])
     
     # Bowling metrics normalization
     merged["norm_wickets"] = normalize(merged["wickets"])
