@@ -1,8 +1,13 @@
 const BASE = import.meta.env.VITE_API_BASE_URL || ''  // Vite proxies to Flask or uses production URL
 
 const req = async (url, opts = {}) => {
+  const fullUrl = BASE + url
+  console.log(`[API] Request: ${opts.method || 'GET'} ${fullUrl}`)
+  
   try {
-    const res = await fetch(BASE + url, opts)
+    const res = await fetch(fullUrl, opts)
+    console.log(`[API] Response: ${res.status} ${res.statusText}`)
+    
     const contentType = res.headers.get('content-type')
     let data = {}
     
@@ -10,12 +15,14 @@ const req = async (url, opts = {}) => {
       data = await res.json()
     } else {
       const text = await res.text()
-      data = { error: `Server error (${res.status}): ${text.slice(0, 100)}` }
+      console.warn(`[API] Non-JSON response received: ${text.slice(0, 200)}`)
+      data = { error: `Server error (${res.status}): Please ensure backend is running correctly.` }
     }
     
     return { ok: res.ok, status: res.status, data }
   } catch (err) {
-    return { ok: false, status: 500, data: { error: 'Network error or backend unreachable.' } }
+    console.error(`[API] Fetch Error:`, err)
+    return { ok: false, status: 500, data: { error: 'Network error: Backend might be down or unreachable.' } }
   }
 }
 

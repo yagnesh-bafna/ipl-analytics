@@ -16,8 +16,15 @@ from route.player_profile import profile_bp
 from route.analytics import analytics_bp
 from route.auction import auction_bp
 from route.contact import contact_bp
-from route.auth import auth_bp
+from route.auth import auth_bp, init_users_table
 from route.all_rounder import all_rounder_bp
+
+# Initialize database tables
+try:
+    with app.app_context():
+        init_users_table()
+except Exception as e:
+    print(f"Database Initialization Error: {e}")
 
 # Configure CORS
 env_origins = os.getenv("ALLOWED_ORIGINS")
@@ -29,7 +36,8 @@ else:
 # Add common origins
 common_origins = [
     "http://localhost:5173",
-    "https://ipl-analytics-ten.vercel.app"
+    "https://ipl-analytics-ten.vercel.app",
+    "https://ipl-analytics-ten.vercel.app/"
 ]
 for origin in common_origins:
     if origin not in allowed_origins:

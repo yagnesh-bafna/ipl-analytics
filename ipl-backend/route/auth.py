@@ -56,7 +56,7 @@ def init_users_table():
     conn.close()
 
 # Initialize the table when module is loaded
-init_users_table()
+# init_users_table()  <-- Moved to app.py for better startup control
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
