@@ -40,6 +40,8 @@ const CustomTooltip = ({ active, payload, label, pAData, pBData }) => {
 const COLORS = {
   playerA: '#4f46e5', // Indigo
   playerB: '#06b6d4', // Cyan
+  text: '#f8fafc',    // Slate 50 (Very light gray/white)
+  label: '#94a3b8',   // Slate 400
 };
 
 export default function PlayerMatchup() {
@@ -206,7 +208,7 @@ export default function PlayerMatchup() {
     { 
       title: pAData?.name?.toUpperCase() || 'PLAYER A', 
       render: (_, record) => (
-        <Text className={`text-[16px] font-bold ${record.A >= record.B ? 'text-indigo-400' : 'text-gray-500 opacity-60'}`}>
+        <Text className={`text-[16px] font-bold ${record.A >= record.B ? 'text-indigo-400' : 'text-slate-300'}`}>
           {typeof record.valA === 'number' ? record.valA.toFixed(2) : record.valA}
         </Text>
       ) 
@@ -214,7 +216,7 @@ export default function PlayerMatchup() {
     { 
       title: pBData?.name?.toUpperCase() || 'PLAYER B', 
       render: (_, record) => (
-        <Text className={`text-[16px] font-bold ${record.B > record.A ? 'text-cyan-400' : 'text-gray-500 opacity-60'}`}>
+        <Text className={`text-[16px] font-bold ${record.B > record.A ? 'text-cyan-400' : 'text-slate-300'}`}>
           {typeof record.valB === 'number' ? record.valB.toFixed(2) : record.valB}
         </Text>
       ) 
@@ -413,11 +415,15 @@ export default function PlayerMatchup() {
                         <ResponsiveContainer width="100%" height={400}>
                           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
                             <PolarGrid stroke="rgba(255, 255, 255, 0.05)" />
-                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }} />
+                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }} />
                             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                             <Radar name={pAData.name} dataKey="A" stroke={COLORS.playerA} fill={COLORS.playerA} strokeWidth={3} fillOpacity={0.25} />
                             <Radar name={pBData.name} dataKey="B" stroke={COLORS.playerB} fill={COLORS.playerB} strokeWidth={3} fillOpacity={0.25} />
-                            <RechartsTooltip content={<CustomTooltip pAData={pAData} pBData={pBData} />} />
+                            <RechartsTooltip 
+                              contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                              itemStyle={{ color: '#e2e8f0', fontWeight: 'bold' }}
+                              labelStyle={{ color: '#94a3b8', fontWeight: 'black', textTransform: 'uppercase', marginBottom: '4px' }}
+                            />
                           </RadarChart>
                         </ResponsiveContainer>
                       </div>
