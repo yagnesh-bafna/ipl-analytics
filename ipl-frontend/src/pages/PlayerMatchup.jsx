@@ -270,24 +270,25 @@ export default function PlayerMatchup() {
         <style>{`
           .antd-premium-select.ant-select .ant-select-selector {
             background: rgba(15, 23, 42, 0.6) !important;
-            padding-left: 52px !important;
+            padding-left: 40px !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
             border-radius: 12px !important;
           }
           
           .antd-premium-select.ant-select .ant-select-selection-placeholder {
-            left: 52px !important;
+            left: 40px !important;
             text-transform: none !important;
             letter-spacing: normal !important;
-            opacity: 0.3 !important;
+            opacity: 0.4 !important;
+            color: #94a3b8 !important;
           }
 
           .antd-premium-select.ant-select .ant-select-selection-search {
-            left: 52px !important;
+            left: 40px !important;
           }
 
           .antd-premium-select.ant-select .ant-select-selection-item {
-            left: 52px !important;
+            left: 40px !important;
             padding-left: 0px !important;
             font-weight: 600 !important;
           }
@@ -334,10 +335,10 @@ export default function PlayerMatchup() {
                   <span className="text-[12px] font-black uppercase tracking-widest text-gray-500">Primary Selection</span>
                 </div>
                 <div className="relative group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-indigo-400 z-10 transition-all pointer-events-none" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-indigo-400 z-10 transition-all pointer-events-none" />
                   <Select
                     showSearch
-                    placeholder="Search player..."
+                    placeholder="Search by name..."
                     className="w-full antd-premium-select"
                     optionFilterProp="children"
                     onChange={setPlayerA}
@@ -365,10 +366,10 @@ export default function PlayerMatchup() {
                   <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
                 </div>
                 <div className="relative group text-left">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-cyan-400 z-10 transition-all pointer-events-none" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-cyan-400 z-10 transition-all pointer-events-none" />
                   <Select
                     showSearch
-                    placeholder="Search player..."
+                    placeholder="Search by name..."
                     className="w-full antd-premium-select"
                     optionFilterProp="children"
                     onChange={setPlayerB}
