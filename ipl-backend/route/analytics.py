@@ -142,29 +142,65 @@ def team_of_tournament():
 @analytics_bp.route("/api/matrix")
 def player_matrix():
     try:
-        batting, bowling = load_data()
+        conn = get_connection()
+        # Only consider players who have played in recent seasons (2024 or 2025)
+        recent_batting = pd.read_sql("SELECT * FROM batting_stats WHERE season IN (2024, 2025)", conn)
+        recent_bowling = pd.read_sql("SELECT * FROM bowling_stats WHERE season IN (2024, 2025)", conn)
+        
+        # Also need full historical data for career stats if we want total impact, 
+        # but the prompt specifically mentioned Ben Stokes (inactive).
+        # Let's filter the final list to only include players active in 2024/2025.
+        active_players = set(recent_batting["player"].unique()) | set(recent_bowling["bowler"].unique())
+
+        batting_query = """
+        SELECT b.*, p.cricket_country 
+        FROM batting_stats b
+        LEFT JOIN players p ON b.player = p.player_name
+        """
+        bowling_query = """
+        SELECT b.*, p.cricket_country 
+        FROM bowling_stats b
+        LEFT JOIN players p ON b.bowler = p.player_name
+        """
+        batting = pd.read_sql(batting_query, conn)
+        bowling = pd.read_sql(bowling_query, conn)
+        conn.close()
+
         bat_metrics = batting_metrics(batting)
         bowl_metrics = bowling_metrics(bowling)
         
+        # Filter for active players only
+        bat_metrics = bat_metrics[bat_metrics["player"].isin(active_players)]
+        bowl_metrics = bowl_metrics[bowl_metrics["player"].isin(active_players)]
+
         # Prepare Batter Data
         bat_part = bat_metrics[["player", "runs", "strike_rate", "consistency", "boundary_pct"]].copy()
         bat_part["type"] = "Batter"
         bat_part["cons_val"] = bat_part["consistency"]
-        bat_part["exp_val"] = (bat_part["strike_rate"] * 0.5) + (bat_part["boundary_pct"] * 0.5)
         
-        # Normalize Batting
-        bat_part["norm_cons"] = normalize(bat_part["cons_val"].fillna(0))
-        bat_part["norm_exp"] = normalize(bat_part["exp_val"].fillna(0))
+        # EXPLOSIVENESS RECALCULATION: 
+        # Use a higher benchmark (220 SR) to spread out the top players
+        # And give more weight to Strike Rate
+        bat_part["exp_val"] = (bat_part["strike_rate"] * 0.7) + (bat_part["boundary_pct"] * 0.3)
+        
+        # Normalize Batting using a fixed upper benchmark to avoid everyone hitting 100
+        def custom_normalize(series, benchmark):
+            return (series / benchmark * 100).clip(upper=100)
+
+        bat_part["norm_cons"] = custom_normalize(bat_part["cons_val"], 60) # 60 runs/match benchmark
+        bat_part["norm_exp"] = custom_normalize(bat_part["exp_val"], 160) # (~210 SR benchmark)
         
         # Prepare Bowler Data
         bowl_part = bowl_metrics[["player", "wickets", "economy", "strike_rate"]].copy()
         bowl_part["type"] = "Bowler"
-        bowl_part["cons_val"] = 12 - bowl_part["economy"] 
-        bowl_part["exp_val"] = 30 - bowl_part["strike_rate"]
+        # For bowlers, consistency is low economy (12 - econ)
+        bowl_part["cons_val"] = (12 - bowl_part["economy"]).clip(lower=0)
+        # Explosiveness is low strike rate (35 - sr)
+        bowl_part["exp_val"] = (35 - bowl_part["strike_rate"]).clip(lower=0)
         
         # Normalize Bowling
-        bowl_part["norm_cons"] = normalize(bowl_part["cons_val"].fillna(0))
-        bowl_part["norm_exp"] = normalize(bowl_part["exp_val"].fillna(0))
+        bowl_part["norm_cons"] = custom_normalize(bowl_part["cons_val"], 8) # Econ of 4 benchmark
+        bowl_part["norm_exp"] = custom_normalize(bowl_part["exp_val"], 25) # SR of 10 benchmark
         
         df = pd.concat([bat_part, bowl_part], ignore_index=True)
         
@@ -179,24 +215,32 @@ def player_matrix():
         df = df.merge(players_df, left_on="player", right_on="player_name", how="left")
         
         # Deduplicate: Prioritize the row with higher overall metrics within its type
-        # For All-Rounders, this will keep the version (Batter or Bowler) where they are relatively more impactful
         df["impact_score"] = df["norm_cons"] + df["norm_exp"]
         df = df.sort_values("impact_score", ascending=False).drop_duplicates("player")
         
+        # Dynamic Median Lines: Use the actual mean of the active dataset
+        median_cons = df["norm_cons"].mean()
+        median_exp = df["norm_exp"].mean()
+
         def matrix_category(row):
             cons = row["norm_cons"]
             exp = row["norm_exp"]
-            if cons > 40 and exp > 40: return "Superstar"
-            elif cons > 40 and exp <= 40: return "Anchor"
-            elif cons <= 40 and exp > 40: return "Wildcard"
+            if cons > median_cons and exp > median_exp: return "Superstar"
+            elif cons > median_cons and exp <= median_exp: return "Anchor"
+            elif cons <= median_cons and exp > median_exp: return "Wildcard"
             else: return "Replacement Level"
                 
         df["matrix_category"] = df.apply(matrix_category, axis=1)
         
-        # Return useful subset - Ensure columns exist before selection
+        # Return useful subset
         cols = ["player", "type", "runs", "strike_rate", "consistency", "norm_cons", "norm_exp", "matrix_category", "age", "birth_country", "cricket_country"]
         existing_cols = [c for c in cols if c in df.columns]
         result = df[existing_cols].copy()
+        
+        return jsonify(result.to_dict(orient="records"))
+    except Exception as e:
+        print(f"Matrix API Error: {e}")
+        return jsonify({"error": str(e)}), 500
         
         # Replace all non-finite values (NaN, Inf) with None for JSON compatibility
         import numpy as np
