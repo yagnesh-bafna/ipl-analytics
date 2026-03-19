@@ -14,8 +14,8 @@ const navItems = [
   { path: '/bowling',     label: 'Bowling Scouting',  icon: Target },
   { path: '/matchup',     label: 'Player Matchup',    icon: GitCompare },
   { path: '/matrix',      label: 'Player Matrix',     icon: Layers },
-  { path: '/dream-team',  label: 'Dream Team',        icon: Award },
   { path: '/auction',     label: 'Auction Predictor', icon: Banknote },
+  { path: '/dream-team',  label: 'Dream Team',        icon: Award },
   { path: '/contact',     label: 'Contact Us',        icon: Mail },
 ]
 
