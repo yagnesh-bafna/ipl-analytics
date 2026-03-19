@@ -7,3 +7,6 @@ google-auth
 google-auth-oauthlib
 Flask-Mail
 gunicorn
+pandas
+numpy
+SQLAlchemy
