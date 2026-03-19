@@ -44,7 +44,7 @@ export const fetchTeamOfTournament = () => req('/api/team_of_tournament')
 export const fetchAdminStats = () => req('/api/admin/stats')
 export const fetchAdminUsers = () => req('/api/admin/users')
 export const fetchAdminLogs = () => req('/api/admin/logs')
-export const toggleUserStatus = (userId, isSuspended) => req('/api/admin/user/status', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, is_suspended: isSuspended }) })
+export const removeUser = (userId) => req('/api/admin/user/remove', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId }) })
 export const resetUserPassword = (userId, newPassword) => req('/api/admin/user/reset_password', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, new_password: newPassword }) })
 
 // CONTACT

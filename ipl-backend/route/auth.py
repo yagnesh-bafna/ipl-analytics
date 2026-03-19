@@ -48,6 +48,11 @@ def init_users_table():
         conn.commit()
     except: conn.rollback()
 
+    try:
+        c.execute('ALTER TABLE users ADD COLUMN last_login TIMESTAMP')
+        conn.commit()
+    except: conn.rollback()
+
     conn.close()
 
 # Initialize the table when module is loaded
@@ -140,6 +145,10 @@ def login():
              "role": actual_role if actual_role else "user"
          }
          
+         # Update last_login timestamp
+         c.execute("UPDATE users SET last_login = NOW() WHERE id = %s", (user_row[0],))
+         conn.commit()
+
          is_suspended = user_row[4]
          conn.close()
          
@@ -158,38 +167,40 @@ def login():
 # USER MANAGEMENT (ADMIN)
 # -----------------------------
 
+from datetime import datetime, timedelta
+
 @auth_bp.route("/api/admin/users", methods=["GET"])
 def get_all_users():
     conn = get_connection()
     if conn is None: return jsonify({"error": "DB error"}), 500
     c = conn.cursor()
-    c.execute("SELECT id, username, email, role, is_suspended FROM users ORDER BY id ASC")
+    c.execute("SELECT id, username, email, role, last_login FROM users ORDER BY id ASC")
     users = c.fetchall()
     conn.close()
     
     user_list = []
     for u in users:
+        is_active = (datetime.now() - u[4]) < timedelta(days=2) if u[4] else False
         user_list.append({
             "id": u[0],
             "username": u[1],
             "email": u[2],
             "role": u[3],
-            "is_suspended": u[4]
+            "status": "Active" if is_active else "Inactive"
         })
     return jsonify(user_list)
 
-@auth_bp.route("/api/admin/user/status", methods=["POST"])
-def update_user_status():
+@auth_bp.route("/api/admin/user/remove", methods=["POST"])
+def remove_user():
     data = request.json
     uid = data.get("user_id")
-    status = data.get("is_suspended")
     
     conn = get_connection()
     c = conn.cursor()
-    c.execute("UPDATE users SET is_suspended = %s WHERE id = %s", (status, uid))
+    c.execute("DELETE FROM users WHERE id = %s", (uid,))
     conn.commit()
     conn.close()
-    return jsonify({"message": "Status updated"})
+    return jsonify({"message": "User removed"})
 
 @auth_bp.route("/api/admin/user/reset_password", methods=["POST"])
 def reset_password():

@@ -3,21 +3,24 @@ import { motion } from 'framer-motion'
 import Layout from '../components/layout/Layout'
 import Header from '../components/layout/Header'
 import { PageLoader } from '../components/ui/Spinner'
-import { fetchAdminUsers, toggleUserStatus, resetUserPassword } from '../lib/api.js'
+import { fetchAdminUsers, removeUser, resetUserPassword } from '../lib/api.js'
 import { useApi } from '../hooks/useApi'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Trash2 } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function AdminUsers() {
-  const { data: users, loading, error } = useApi(fetchAdminUsers)
+  const { data: users, loading, error, setData } = useApi(fetchAdminUsers)
   const [msg, setMsg] = useState('')
 
   const toast = (m) => { setMsg(m); setTimeout(() => setMsg(''), 3000) }
 
-  const handleToggle = async (id, current) => {
-    if (!confirm('Confirm status change?')) return
-    const { ok } = await toggleUserStatus(id, !current)
-    if (ok) toast('Status updated. Please refresh to see changes.')
+  const handleRemove = async (id) => {
+    if (!confirm('Are you sure you want to permanently remove this user? This action cannot be undone.')) return
+    const { ok } = await removeUser(id)
+    if (ok) {
+      toast('User has been removed.')
+      setData(users.filter(u => u.id !== id)) // Optimistic UI update
+    }
   }
 
   const handleReset = async (id) => {
@@ -66,22 +69,20 @@ export default function AdminUsers() {
                           <span className="badge bg-primary-500/10 text-primary-500 uppercase font-black text-[10px]">{u.role}</span>
                         </td>
                         <td className="py-4 px-6">
-                          {u.is_suspended
-                            ? <span className="badge bg-red-500/10 text-red-500 font-bold text-xs">Suspended</span>
-                            : <span className="badge bg-emerald-500/10 text-emerald-500 font-bold text-xs">Active</span>}
+                          <span className={clsx(
+                            "badge font-bold text-xs",
+                            u.status === 'Active' 
+                              ? "bg-emerald-500/10 text-emerald-500" 
+                              : "bg-gray-500/10 text-gray-500"
+                          )}>{u.status}</span>
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex items-center justify-end gap-2">
                             <button 
-                              onClick={() => handleToggle(u.id, u.is_suspended)} 
-                              className={clsx(
-                                "h-9 px-4 rounded-lg text-xs font-bold transition-all border",
-                                u.is_suspended 
-                                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20" 
-                                  : "bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20"
-                              )}
+                              onClick={() => handleRemove(u.id)} 
+                              className="h-9 px-4 rounded-lg text-xs font-bold transition-all border bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 flex items-center gap-2"
                             >
-                              {u.is_suspended ? 'Reactivate' : 'Suspend'}
+                              <Trash2 className="w-3.5 h-3.5" /> Remove
                             </button>
                             <button 
                               onClick={() => handleReset(u.id)} 
