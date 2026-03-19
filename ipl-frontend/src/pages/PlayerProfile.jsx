@@ -341,6 +341,7 @@ export default function PlayerProfile() {
                         align="right" 
                         iconType="circle"
                         wrapperStyle={{ paddingBottom: '40px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, letterSpacing: '0.1em' }}
+                        formatter={(value) => <span className="text-gray-400 dark:text-gray-300 ml-2">{value}</span>}
                       />
                       
                       {graphType === 'batting' ? (
@@ -349,6 +350,7 @@ export default function PlayerProfile() {
                             yAxisId="left" 
                             dataKey="runs" 
                             name="Runs Scored" 
+                            fill="#3b82f6"
                             radius={[8, 8, 0, 0]} 
                             barSize={50}
                           >
@@ -373,6 +375,7 @@ export default function PlayerProfile() {
                             yAxisId="left" 
                             dataKey="wickets" 
                             name="Wickets Taken" 
+                            fill="#ec4899"
                             radius={[8, 8, 0, 0]} 
                             barSize={50}
                           >
