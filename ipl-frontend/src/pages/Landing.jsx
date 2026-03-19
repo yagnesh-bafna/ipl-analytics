@@ -49,12 +49,9 @@ export default function Landing() {
             The next generation of cricket decision analytics. Data meets intuition — powered by real IPL data.
           </p>
 
-          <div className="flex gap-4 justify-center flex-wrap">
-            <button onClick={() => navigate('/auth')} className="btn-primary flex items-center gap-2 text-base px-8 py-3">
-              Enter Platform <ArrowRight className="w-4 h-4" />
-            </button>
-            <button onClick={() => navigate('/auth?tab=signup')} className="btn-ghost text-base px-8 py-3">
-              Create Account
+          <div className="flex justify-center">
+            <button onClick={() => navigate('/auth')} className="btn-primary flex items-center gap-2 text-base px-10 py-4 shadow-xl shadow-primary-500/25">
+              Enter Platform <ArrowRight className="w-5 h-5" />
             </button>
           </div>
         </motion.div>
