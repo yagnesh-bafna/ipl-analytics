@@ -92,11 +92,18 @@ def bowling_metrics(bowling):
     if "bowler" in df.columns:
         df = df.rename(columns={"bowler": "player"})
 
-    df["balls"] = df["overs"] * 6
-    df["economy"] = df["runs_conceded"] / df["overs"]
-    df["strike_rate"] = df["balls"] / df["wickets"].replace(0,1)
-    df["avg"] = df["runs_conceded"] / df["wickets"].replace(0,1)
-    df["dot_ball_pct"] = (df["dot_balls"] / df["balls"]) * 100
+    # Convert cricket overs notation (e.g., 4.2) to total balls
+    # 4.2 -> 4*6 + 2 = 26 balls
+    def overs_to_balls(o):
+        whole = int(o)
+        fraction = round((o - whole) * 10, 0)
+        return (whole * 6) + fraction
+
+    df["balls"] = df["overs"].apply(overs_to_balls)
+    df["economy"] = (df["runs_conceded"] / df["balls"] * 6).fillna(0)
+    df["strike_rate"] = (df["balls"] / df["wickets"]).replace([float('inf'), -float('inf')], 0).fillna(0)
+    df["avg"] = (df["runs_conceded"] / df["wickets"]).replace([float('inf'), -float('inf')], 0).fillna(0)
+    df["dot_ball_pct"] = (df["dot_balls"] / df["balls"] * 100).fillna(0)
 
     return df
 
