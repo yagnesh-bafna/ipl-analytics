@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Layout from '../components/layout/Layout'
 import Header from '../components/layout/Header'
 import { PageLoader } from '../components/ui/Spinner'
-import { saveTeam, loadTeam, fetchTeamOfTournament, fetchMatrix } from '../lib/api.js'
+import { saveTeam, loadTeam, fetchTeamOfTournament, fetchMatrix, fetchMagicFill } from '../lib/api.js'
 import { useApi } from '../hooks/useApi'
 import { useAuth } from '../context/AuthContext'
-import { Trash2, Save, Cpu, Users } from 'lucide-react'
+import { Trash2, Save, Cpu, Users, Wand2 } from 'lucide-react'
 import clsx from 'clsx'
 import { useSquad } from '../context/SquadContext'
 
@@ -147,31 +147,15 @@ export default function DreamTeam() {
     setSquad(next);
   };
 
-  const autoGenerate = async () => {
+  const magicFill = async () => {
     setLoading(true)
-    const { ok, data } = await fetchTeamOfTournament()
+    const { ok, data } = await fetchMagicFill()
     if (ok && data) {
-      // In a real scenario, the backend might return more than 11 or unsorted
-      // Here we assume it returns a good pool, but we must enforce the 4 OS limit
-      const allPlayers = data.map(p => ({
-        name: p.player,
-        type: 'Algorithmic Optimization',
-        country: p.cricket_country || 'India'
-      }))
-
-      const isOs = (p) => p.country && p.country.toLowerCase() !== 'india'
-      
-      const indians = allPlayers.filter(p => !isOs(p))
-      const overseas = allPlayers.filter(p => isOs(p))
-
-      // Take up to 4 overseas, and fill rest with Indians to make 11
-      const selectedOs = overseas.slice(0, 4)
-      const selectedInd = indians.slice(0, 11 - selectedOs.length)
-      
-      const finalTeam = [...selectedOs, ...selectedInd].slice(0, 11)
-      
-      setSquad(finalTeam)
-      setMsg('AI Squad generated (respecting 4 overseas limit).')
+      setSquad(data)
+      setMsg('Magic Fill completed! 🪄 Squad optimized for balance and performance.')
+      setTimeout(() => setMsg(''), 3000)
+    } else {
+      setMsg('Magic Fill failed. Try again.')
       setTimeout(() => setMsg(''), 3000)
     }
     setLoading(false)
@@ -203,6 +187,14 @@ export default function DreamTeam() {
               </div>
 
               <div className="flex items-center gap-3">
+                <button
+                  onClick={magicFill}
+                  disabled={loading || saving}
+                  className="w-full sm:w-auto px-6 py-2.5 sm:py-3 rounded-2xl bg-gray-100 dark:bg-dark-800 hover:bg-gray-200 dark:hover:bg-dark-700 text-gray-900 dark:text-white font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-gray-200 dark:border-dark-700 shadow-xl"
+                >
+                  <Wand2 className="w-4 h-4 text-primary-500" />
+                  {loading ? 'Filling...' : 'Magic Fill'}
+                </button>
                 <button
                   onClick={save}
                   disabled={saving || loading || squad.length === 0}

@@ -40,12 +40,126 @@ from analysis.player_metrics import (
     bowling_metrics,
     classify_roles,
     score_openers,
+    score_middle,
     score_finishers,
     score_bowlers,
     score_allrounders,
     team_of_tournament as tot_func,
     normalize
 )
+
+import random
+
+# -----------------------------
+# MAGIC FILL (SMART SQUAD GENERATOR)
+# -----------------------------
+
+@analytics_bp.route("/api/magic_fill")
+def magic_fill():
+    try:
+        conn = get_connection()
+        # 1. Filter for active players only (2024/2025)
+        recent_batting = pd.read_sql("SELECT * FROM batting_stats WHERE season IN (2024, 2025)", conn)
+        recent_bowling = pd.read_sql("SELECT * FROM bowling_stats WHERE season IN (2024, 2025)", conn)
+        active_players = set(recent_batting["player"].unique()) | set(recent_bowling["bowler"].unique())
+        
+        # 2. Load all data and join with player info (country)
+        batting_query = """
+        SELECT b.*, p.cricket_country 
+        FROM batting_stats b
+        LEFT JOIN players p ON b.player = p.player_name
+        """
+        bowling_query = """
+        SELECT b.*, p.cricket_country 
+        FROM bowling_stats b
+        LEFT JOIN players p ON b.bowler = p.player_name
+        """
+        batting = pd.read_sql(batting_query, conn)
+        bowling = pd.read_sql(bowling_query, conn)
+        conn.close()
+
+        # 3. Process metrics
+        bat_m = batting_metrics(batting)
+        bowl_m = bowling_metrics(bowling)
+        
+        # Filter metrics for active players only
+        bat_m = bat_m[bat_m["player"].isin(active_players)].copy()
+        bowl_m = bowl_m[bowl_m["player"].isin(active_players)].copy()
+        
+        bat_m = classify_roles(bat_m)
+        
+        # 4. Get role-specific candidates (Top 15 for each to ensure variety)
+        # Using the scoring functions from player_metrics.py
+        openers_df = score_openers(bat_m).head(15)
+        middle_df = score_middle(bat_m).head(15)
+        finishers_df = score_finishers(bat_m).head(15)
+        bowlers_df = score_bowlers(bowl_m).head(15)
+        allrounders_df = score_allrounders(bat_m, bowl_m).head(15)
+
+        squad = []
+        overseas_count = 0
+        selected_names = set()
+
+        def pick_player(df, count, role_label):
+            nonlocal overseas_count
+            picks = 0
+            # Shuffle the top candidates for randomness
+            candidates = df.sample(frac=1).to_dict(orient="records")
+            
+            for p in candidates:
+                if picks >= count: break
+                if p["player"] in selected_names: continue
+                
+                is_overseas = p.get("cricket_country", "India").lower() != "india"
+                
+                # Enforce overseas limit (max 4)
+                if is_overseas and overseas_count >= 4:
+                    continue
+                
+                # Add player to squad
+                player_entry = {
+                    "name": p["player"],
+                    "roles": [role_label],
+                    "type": "batting" if role_label in ["Opener", "Middle Order", "Finisher"] else "bowling" if role_label == "Bowler" else "all_rounder",
+                    "country": p.get("cricket_country", "India")
+                }
+                squad.append(player_entry)
+                selected_names.add(p["player"])
+                if is_overseas: overseas_count += 1
+                picks += 1
+
+        # Build balanced squad: 2 Openers, 3 Middle, 1 Finisher, 2 Allrounders, 3 Bowlers
+        pick_player(openers_df, 2, "Opener")
+        pick_player(middle_df, 3, "Middle Order")
+        pick_player(finishers_df, 1, "Finisher")
+        pick_player(allrounders_df, 2, "All-Rounder")
+        pick_player(bowlers_df, 3, "Bowler")
+
+        # Fallback: If for some reason we didn't get 11 players (e.g. constraints too tight), 
+        # fill the remaining slots with anyone from the top lists who isn't overseas (if limit reached)
+        if len(squad) < 11:
+            all_candidates = pd.concat([openers_df, middle_df, finishers_df, allrounders_df, bowlers_df]).drop_duplicates("player")
+            all_candidates = all_candidates.sample(frac=1).to_dict(orient="records")
+            for p in all_candidates:
+                if len(squad) >= 11: break
+                if p["player"] in selected_names: continue
+                is_overseas = p.get("cricket_country", "India").lower() != "india"
+                if is_overseas and overseas_count >= 4: continue
+                
+                squad.append({
+                    "name": p["player"],
+                    "roles": ["Squad Member"],
+                    "type": "all_rounder",
+                    "country": p.get("cricket_country", "India")
+                })
+                selected_names.add(p["player"])
+                if is_overseas: overseas_count += 1
+
+        return jsonify(squad)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 # -----------------------------
 # BEST OPENERS

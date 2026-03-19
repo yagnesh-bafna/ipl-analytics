@@ -63,6 +63,7 @@ export const fetchPlayerProfile = (name, userId) => req(`/player/${encodeURIComp
 
 // ANALYTICS
 export const fetchMatrix = () => req('/api/matrix')
+export const fetchMagicFill = () => req('/api/magic_fill')
 export const fetchTrending = () => req('/api/admin/trending')
 export const fetchTeamOfTournament = () => req('/api/team_of_tournament')
 
