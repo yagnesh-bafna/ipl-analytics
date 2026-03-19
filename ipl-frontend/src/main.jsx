@@ -12,6 +12,10 @@ const root = createRoot(container)
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
+if (!GOOGLE_CLIENT_ID) {
+  console.error("VITE_GOOGLE_CLIENT_ID is missing in environment variables.")
+}
+
 root.render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

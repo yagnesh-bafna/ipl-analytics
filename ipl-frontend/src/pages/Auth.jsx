@@ -74,10 +74,15 @@ export default function Auth() {
     if (!username || !password) return setError('Please fill in all fields.')
     if (role === 'admin' && !form.adminKey) return setError('Admin passkey required.')
     setLoading(true); setError(''); setMessage('')
-    const { ok, data } = await apiLogin({ username, password, role, admin_key: form.adminKey?.trim() || null })
-    setLoading(false)
-    if (ok && data?.user) { login(data.user); navigate('/dashboard') }
-    else setError(data?.error || 'Login failed. Please check your credentials.')
+    try {
+      const { ok, data } = await apiLogin({ username, password, role, admin_key: form.adminKey?.trim() || null })
+      if (ok && data?.user) { login(data.user); navigate('/dashboard') }
+      else setError(data?.error || 'Login failed. Please check your credentials.')
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSignup = async () => {
@@ -87,18 +92,28 @@ export default function Auth() {
     if (!username || !email || !password) return setError('Please fill in all fields.')
     if (role === 'admin' && !form.adminKey) return setError('Admin invite key required.')
     setLoading(true); setError(''); setMessage('')
-    const { ok, data } = await apiSignup({ username, email, password, role, admin_key: form.adminKey?.trim() })
-    setLoading(false)
-    if (ok) { setTab('login'); setError(''); setForm(f => ({ ...f, password: '' })); setMessage('Signup successful! Please sign in.') }
-    else setError(data?.error || 'Signup failed')
+    try {
+      const { ok, data } = await apiSignup({ username, email, password, role, admin_key: form.adminKey?.trim() })
+      if (ok) { setTab('login'); setError(''); setForm(f => ({ ...f, password: '' })); setMessage('Signup successful! Please sign in.') }
+      else setError(data?.error || 'Signup failed')
+    } catch (err) {
+      setError('An unexpected error occurred during signup.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleGoogleLogin = async (credentialResponse) => {
     setLoading(true); setError(''); setMessage('')
-    const { ok, data } = await apiGoogleLogin(credentialResponse.credential)
-    setLoading(false)
-    if (ok && data?.user) { login(data.user); navigate('/dashboard') }
-    else setError(data?.error || 'Google login failed')
+    try {
+      const { ok, data } = await apiGoogleLogin(credentialResponse.credential)
+      if (ok && data?.user) { login(data.user); navigate('/dashboard') }
+      else setError(data?.error || 'Google login failed')
+    } catch (err) {
+      setError('Google authentication error. Please try standard login.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -182,13 +197,12 @@ export default function Auth() {
 
               <div className="flex justify-center">
             <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => setError('Google Authentication Failed. Ensure http://localhost:5173 is allowed in Google Console.')}
-              useOneTap
-              use_fedcm_for_prompt={false}
-              theme="filled_blue"
-              shape="pill"
-            />
+               onSuccess={handleGoogleLogin}
+               onError={() => setError('Google Authentication Failed. Ensure VITE_GOOGLE_CLIENT_ID is set correctly.')}
+               use_fedcm_for_prompt={false}
+               theme="filled_blue"
+               shape="pill"
+             />
           </div>
             </motion.div>
           </AnimatePresence>

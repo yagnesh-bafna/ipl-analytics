@@ -4,8 +4,13 @@ const req = async (url, opts = {}) => {
   const fullUrl = BASE + url
   console.log(`[API] Request: ${opts.method || 'GET'} ${fullUrl}`)
   
+  // Use AbortController for timeout (important for Render free tier cold starts)
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 25000) // 25s timeout
+  
   try {
-    const res = await fetch(fullUrl, opts)
+    const res = await fetch(fullUrl, { ...opts, signal: controller.signal })
+    clearTimeout(timeoutId)
     console.log(`[API] Response: ${res.status} ${res.statusText}`)
     
     const contentType = res.headers.get('content-type')
@@ -16,12 +21,18 @@ const req = async (url, opts = {}) => {
     } else {
       const text = await res.text()
       console.warn(`[API] Non-JSON response received: ${text.slice(0, 200)}`)
-      data = { error: `Server error (${res.status}): Please ensure backend is running correctly.` }
+      data = { error: `Server error (${res.status}): Please wait a moment while the server wakes up.` }
     }
     
     return { ok: res.ok, status: res.status, data }
   } catch (err) {
+    clearTimeout(timeoutId)
     console.error(`[API] Fetch Error:`, err)
+    
+    if (err.name === 'AbortError') {
+      return { ok: false, status: 408, data: { error: 'Request timed out. The server might be waking up (cold start). Please try again in 10 seconds.' } }
+    }
+    
     return { ok: false, status: 500, data: { error: 'Network error: Backend might be down or unreachable.' } }
   }
 }
