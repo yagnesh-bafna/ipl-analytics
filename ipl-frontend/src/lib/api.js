@@ -4,13 +4,13 @@ const BASE = import.meta.env.VITE_API_BASE_URL || ''  // Vite proxies to Flask o
 let lastLatency = 0
 export const getLastLatency = () => lastLatency
 
-const req = async (url, opts = {}) => {
+const req = async (url, opts = {}, timeoutMs = 25000) => {
   const fullUrl = BASE + url
   console.log(`[API] Request: ${opts.method || 'GET'} ${fullUrl}`)
   
   // Use AbortController for timeout (important for Render free tier cold starts)
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 25000) // 25s timeout
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
   
   const start = performance.now()
   try {
@@ -63,7 +63,7 @@ export const fetchPlayerProfile = (name, userId) => req(`/player/${encodeURIComp
 
 // ANALYTICS
 export const fetchMatrix = () => req('/api/matrix')
-export const fetchMagicFill = () => req('/api/magic_fill')
+export const fetchMagicFill = () => req('/api/magic_fill', {}, 45000) // 45s timeout for heavy analytics
 export const fetchTrending = () => req('/api/admin/trending')
 export const fetchTeamOfTournament = () => req('/api/team_of_tournament')
 

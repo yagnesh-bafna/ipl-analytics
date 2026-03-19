@@ -58,60 +58,54 @@ import random
 def magic_fill():
     try:
         conn = get_connection()
-        # 1. Filter for active players only (2024/2025)
-        recent_batting = pd.read_sql("SELECT * FROM batting_stats WHERE season IN (2024, 2025)", conn)
-        recent_bowling = pd.read_sql("SELECT * FROM bowling_stats WHERE season IN (2024, 2025)", conn)
-        active_players = set(recent_batting["player"].unique()) | set(recent_bowling["bowler"].unique())
+        print("[Magic Fill] Database connected...")
         
-        # 2. Load all data and join with player info (country)
-        # Optimization: Only load players active in 2024/2025
-        active_players_list = list(active_players)
-        if not active_players_list:
-            return jsonify([])
-
-        batting_query = f"""
+        # 1. Load active data (2024/2025) in a single pass
+        # This is much faster than loading all players and then filtering
+        batting_query = """
         SELECT b.*, p.cricket_country 
         FROM batting_stats b
         LEFT JOIN players p ON b.player = p.player_name
-        WHERE b.player IN ({','.join(['%s']*len(active_players_list))})
+        WHERE b.season IN (2024, 2025)
         """
-        bowling_query = f"""
+        bowling_query = """
         SELECT b.*, p.cricket_country 
         FROM bowling_stats b
         LEFT JOIN players p ON b.bowler = p.player_name
-        WHERE b.bowler IN ({','.join(['%s']*len(active_players_list))})
+        WHERE b.season IN (2024, 2025)
         """
         
-        import pandas as pd
-        batting = pd.read_sql(batting_query, conn, params=active_players_list)
-        bowling = pd.read_sql(bowling_query, conn, params=active_players_list)
+        batting = pd.read_sql(batting_query, conn)
+        bowling = pd.read_sql(bowling_query, conn)
         conn.close()
+        print(f"[Magic Fill] Data loaded: {len(batting)} batting, {len(bowling)} bowling rows")
 
-        # 3. Process metrics
+        if batting.empty and bowling.empty:
+            print("[Magic Fill] No active data found for 2024/2025")
+            return jsonify([])
+
+        # 2. Process metrics
         bat_m = batting_metrics(batting)
         bowl_m = bowling_metrics(bowling)
-        
-        # Already filtered by SQL, but ensure copy
-        bat_m = bat_m.copy()
-        bowl_m = bowl_m.copy()
+        print(f"[Magic Fill] Metrics calculated: {len(bat_m)} batters, {len(bowl_m)} bowlers")
         
         bat_m = classify_roles(bat_m)
         
-        # 4. Get role-specific candidates (Top 15 for each to ensure variety)
-        # Using the scoring functions from player_metrics.py
-        # Handle cases where DataFrames might be empty
+        # 3. Get role-specific candidates (Top 15 for each)
         def safe_get_top(df_func, data, count=15):
             try:
                 res = df_func(data)
                 return res.head(count) if not res.empty else pd.DataFrame()
-            except:
+            except Exception as e:
+                print(f"[Magic Fill] Error in scoring: {e}")
                 return pd.DataFrame()
 
         def safe_get_allr(bat, bowl, count=15):
             try:
                 res = score_allrounders(bat, bowl)
                 return res.head(count) if not res.empty else pd.DataFrame()
-            except:
+            except Exception as e:
+                print(f"[Magic Fill] Error in all-rounder scoring: {e}")
                 return pd.DataFrame()
 
         openers_df = safe_get_top(score_openers, bat_m)
