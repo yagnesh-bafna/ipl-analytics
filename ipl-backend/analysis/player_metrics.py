@@ -56,13 +56,13 @@ def batting_metrics(batting):
 
     df = batting.groupby("player").agg(**agg_dict).reset_index()
 
-    df["strike_rate"] = (df["runs"] / df["balls"]) * 100
-    df["avg"] = (df["runs"] / df["matches"])
+    df["strike_rate"] = (df["runs"] / df["balls"] * 100).replace([float('inf'), -float('inf')], 0).fillna(0)
+    df["avg"] = (df["runs"] / df["matches"]).replace([float('inf'), -float('inf')], 0).fillna(0)
 
     df["boundary_runs"] = df["fours"]*4 + df["sixes"]*6
-    df["boundary_pct"] = (df["boundary_runs"] / df["runs"]) * 100
+    df["boundary_pct"] = (df["boundary_runs"] / df["runs"] * 100).replace([float('inf'), -float('inf')], 0).fillna(0)
 
-    df["consistency"] = df["runs"] / df["matches"]
+    df["consistency"] = (df["runs"] / df["matches"]).replace([float('inf'), -float('inf')], 0).fillna(0)
 
     return df
 
@@ -100,10 +100,10 @@ def bowling_metrics(bowling):
         return (whole * 6) + fraction
 
     df["balls"] = df["overs"].apply(overs_to_balls)
-    df["economy"] = (df["runs_conceded"] / df["balls"] * 6).fillna(0)
+    df["economy"] = (df["runs_conceded"] / df["balls"] * 6).replace([float('inf'), -float('inf')], 0).fillna(0)
     df["strike_rate"] = (df["balls"] / df["wickets"]).replace([float('inf'), -float('inf')], 0).fillna(0)
     df["avg"] = (df["runs_conceded"] / df["wickets"]).replace([float('inf'), -float('inf')], 0).fillna(0)
-    df["dot_ball_pct"] = (df["dot_balls"] / df["balls"] * 100).fillna(0)
+    df["dot_ball_pct"] = (df["dot_balls"] / df["balls"] * 100).replace([float('inf'), -float('inf')], 0).fillna(0)
 
     return df
 

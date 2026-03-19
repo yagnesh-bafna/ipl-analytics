@@ -64,27 +64,36 @@ def magic_fill():
         active_players = set(recent_batting["player"].unique()) | set(recent_bowling["bowler"].unique())
         
         # 2. Load all data and join with player info (country)
-        batting_query = """
+        # Optimization: Only load players active in 2024/2025
+        active_players_list = list(active_players)
+        if not active_players_list:
+            return jsonify([])
+
+        batting_query = f"""
         SELECT b.*, p.cricket_country 
         FROM batting_stats b
         LEFT JOIN players p ON b.player = p.player_name
+        WHERE b.player IN ({','.join(['%s']*len(active_players_list))})
         """
-        bowling_query = """
+        bowling_query = f"""
         SELECT b.*, p.cricket_country 
         FROM bowling_stats b
         LEFT JOIN players p ON b.bowler = p.player_name
+        WHERE b.bowler IN ({','.join(['%s']*len(active_players_list))})
         """
-        batting = pd.read_sql(batting_query, conn)
-        bowling = pd.read_sql(bowling_query, conn)
+        
+        import pandas as pd
+        batting = pd.read_sql(batting_query, conn, params=active_players_list)
+        bowling = pd.read_sql(bowling_query, conn, params=active_players_list)
         conn.close()
 
         # 3. Process metrics
         bat_m = batting_metrics(batting)
         bowl_m = bowling_metrics(bowling)
         
-        # Filter metrics for active players only
-        bat_m = bat_m[bat_m["player"].isin(active_players)].copy()
-        bowl_m = bowl_m[bowl_m["player"].isin(active_players)].copy()
+        # Already filtered by SQL, but ensure copy
+        bat_m = bat_m.copy()
+        bowl_m = bowl_m.copy()
         
         bat_m = classify_roles(bat_m)
         
