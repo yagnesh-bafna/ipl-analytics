@@ -3,9 +3,9 @@ import { motion } from 'framer-motion'
 import Layout from '../components/layout/Layout'
 import Header from '../components/layout/Header'
 import { PageLoader } from '../components/ui/Spinner'
-import { fetchAdminUsers, removeUser, resetUserPassword } from '../lib/api.js'
+import { fetchAdminUsers, removeUser } from '../lib/api.js'
 import { useApi } from '../hooks/useApi'
-import { RefreshCw, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function AdminUsers() {
@@ -21,13 +21,6 @@ export default function AdminUsers() {
       toast('User has been removed.')
       setData(users.filter(u => u.id !== id)) // Optimistic UI update
     }
-  }
-
-  const handleReset = async (id) => {
-    const np = prompt('Enter new temporary password:')
-    if (!np) return
-    const { ok } = await resetUserPassword(id, np)
-    if (ok) toast('Password reset successfully.')
   }
 
   return (
@@ -83,12 +76,6 @@ export default function AdminUsers() {
                               className="h-9 px-4 rounded-lg text-xs font-bold transition-all border bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 flex items-center gap-2"
                             >
                               <Trash2 className="w-3.5 h-3.5" /> Remove
-                            </button>
-                            <button 
-                              onClick={() => handleReset(u.id)} 
-                              className="h-9 px-4 rounded-lg bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 text-xs font-bold hover:bg-gray-200 dark:hover:bg-dark-600 transition-all flex items-center gap-2"
-                            >
-                              <RefreshCw className="w-3.5 h-3.5" /> Reset Password
                             </button>
                           </div>
                         </td>

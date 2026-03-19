@@ -52,7 +52,6 @@ export const fetchAdminStats = () => req('/api/admin/stats')
 export const fetchAdminUsers = () => req('/api/admin/users')
 export const fetchAdminLogs = () => req('/api/admin/logs')
 export const removeUser = (userId) => req('/api/admin/user/remove', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId }) })
-export const resetUserPassword = (userId, newPassword) => req('/api/admin/user/reset_password', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, new_password: newPassword }) })
 
 // CONTACT
 export const submitContact = (body) => req('/api/contact', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })

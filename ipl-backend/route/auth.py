@@ -202,20 +202,6 @@ def remove_user():
     conn.close()
     return jsonify({"message": "User removed"})
 
-@auth_bp.route("/api/admin/user/reset_password", methods=["POST"])
-def admin_reset_password():
-    data = request.json
-    uid = data.get("user_id")
-    new_pass = data.get("new_password")
-    
-    hash_p = hash_password(new_pass)
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute("UPDATE users SET password_hash = %s WHERE id = %s", (hash_p, uid))
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "Password reset successfully"})
-
 @auth_bp.route("/api/team/save", methods=["POST"])
 def save_team():
     data = request.json
