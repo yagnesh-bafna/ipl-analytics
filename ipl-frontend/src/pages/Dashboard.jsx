@@ -28,13 +28,13 @@ const quickLinks = [
 
 function StatCard({ icon: Icon, label, value, color, bg }) {
   return (
-    <motion.div variants={cardVariants} className="glass-card flex items-center gap-5 p-5 border-slate-200/50 dark:border-slate-800/50">
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${bg} shadow-inner`}>
-        <Icon className={`w-7 h-7 ${color}`} />
+    <motion.div variants={cardVariants} className="stat-card">
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${bg}`}>
+        <Icon className={`w-6 h-6 ${color}`} />
       </div>
       <div>
-        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-1">{label}</div>
-        <div className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums">{value ?? '—'}</div>
+        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">{label}</div>
+        <div className="text-3xl font-bold text-gray-900 dark:text-white font-heading">{value ?? '—'}</div>
       </div>
     </motion.div>
   )
@@ -70,15 +70,15 @@ function UserDashboard() {
     <motion.div variants={container} initial="hidden" animate="show">
 
       {/* Decision Intelligence Hub (Dynamic Replacement for 'Platform Intel Loaded') */}
-      <motion.div variants={cardVariants} className="glass-card mb-6 overflow-hidden relative group border-l-4 border-l-primary-900 dark:border-l-accent-amber border-slate-200/50 dark:border-slate-800/50">
+      <motion.div variants={cardVariants} className="glass-card mb-6 overflow-hidden relative group border-l-4 border-l-primary-500">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="max-w-xl">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 dark:text-slate-400">Strategic Intelligence Active</span>
+              <span className="text-[10px] uppercase font-black tracking-widest text-primary-500">Strategic Intelligence Active</span>
             </div>
             
-            <h2 className="text-2xl font-serif font-bold text-slate-900 dark:text-white mb-3 tracking-tight">
+            <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight">
               {squad.length === 0 
                 ? "Begin Your Championship Draft" 
                 : squad.length < 11 
@@ -86,27 +86,27 @@ function UserDashboard() {
                   : "Squad Registry Finalized"}
             </h2>
             
-            <div className="flex flex-wrap gap-x-8 gap-y-2">
-              <div className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                <span className="font-bold text-slate-900 dark:text-slate-200 tabular-nums">
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
+              <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                <span className="font-bold text-gray-700 dark:text-gray-200">
                   {squad.filter(p => p.country?.toLowerCase() !== 'india').length}/4
                 </span> 
                 Overseas Slots Used
               </div>
               {trending[0] && (
-                <div className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-8">
-                  <TrendingUp className="w-4 h-4 text-accent-gold" />
+                <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 border-l border-gray-200 dark:border-dark-700 pl-6">
+                  <TrendingUp className="w-3.5 h-3.5 text-secondary-500" />
                   <span className="font-medium">Market Insight:</span> 
-                  <span className="text-primary-900 dark:text-accent-amber font-bold">{trending[0].player}</span> is trending
+                  <span className="text-secondary-500 font-bold">{trending[0].player}</span> is trending
                 </div>
               )}
             </div>
           </div>
-
-          <div className="flex items-center gap-6">
+          
+          <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col items-end text-right">
-              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Compute Latency</div>
-              <div className="text-xs font-mono font-bold text-emerald-500 tabular-nums">
+              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-tighter mb-1">Compute Latency</div>
+              <div className="text-xs font-mono font-bold text-emerald-500">
                 {latency}ms ({latency < 200 ? 'Optimal' : latency < 1000 ? 'Stable' : 'Slow'})
               </div>
             </div>

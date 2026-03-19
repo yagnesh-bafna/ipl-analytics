@@ -41,23 +41,23 @@ export default function Sidebar() {
       }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       className={clsx(
-        "fixed top-0 left-0 h-full w-64 bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50 flex flex-col z-50 transition-transform duration-300 lg:translate-x-0",
+        "fixed top-0 left-0 h-full w-64 bg-white dark:bg-dark-800 border-r border-gray-200 dark:border-dark-700 flex flex-col z-50 transition-transform duration-300 lg:translate-x-0",
         isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between px-6 py-8 border-b border-slate-100/50 dark:border-slate-800/50">
+      <div className="flex items-center justify-between px-6 py-6 border-b border-gray-100 dark:border-dark-700">
         <Link 
           to="/dashboard"
           onClick={closeSidebar}
           className="flex items-center gap-3 hover:opacity-80 transition-opacity"
         >
-          <div className="w-9 h-9 bg-primary-900 dark:bg-accent-amber rounded-xl flex items-center justify-center shadow-lg shadow-primary-900/10 dark:shadow-accent-amber/10">
-            <BarChart3 className="w-5 h-5 text-white dark:text-primary-900" />
+          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+            <BarChart3 className="w-4 h-4 text-white" />
           </div>
           <div>
-            <span className="font-serif font-bold text-gray-900 dark:text-white text-[15px] tracking-tight">IPL Solver</span>
-            <div className="text-[9px] text-slate-400 uppercase font-bold tracking-[0.2em] mt-0.5">Scouting Hub</div>
+            <span className="font-bold text-gray-900 dark:text-white text-sm">IPL Solver</span>
+            <div className="text-[10px] text-gray-400 uppercase tracking-widest">Analytics</div>
           </div>
         </Link>
         
