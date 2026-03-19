@@ -270,24 +270,24 @@ export default function PlayerMatchup() {
         <style>{`
           .antd-premium-select.ant-select .ant-select-selector {
             background: rgba(15, 23, 42, 0.6) !important;
-            padding-left: 44px !important;
+            padding-left: 52px !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
             border-radius: 12px !important;
           }
           
           .antd-premium-select.ant-select .ant-select-selection-placeholder {
-            left: 44px !important;
+            left: 52px !important;
             text-transform: none !important;
             letter-spacing: normal !important;
             opacity: 0.3 !important;
           }
 
           .antd-premium-select.ant-select .ant-select-selection-search {
-            left: 44px !important;
+            left: 52px !important;
           }
 
           .antd-premium-select.ant-select .ant-select-selection-item {
-            left: 44px !important;
+            left: 52px !important;
             padding-left: 0px !important;
             font-weight: 600 !important;
           }
