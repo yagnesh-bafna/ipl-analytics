@@ -216,7 +216,7 @@ function AdminDashboard() {
             <button onClick={() => navigate('/admin/users')} className="btn-ghost w-full text-left flex items-center gap-3 text-sm">
               <Users className="w-4 h-4 text-primary-500" /> User Management Registry
             </button>
-            <button onClick={() => navigate('/contact')} className="btn-ghost w-full text-left flex items-center gap-3 text-sm">
+            <button onClick={() => navigate('/admin/inquiries')} className="btn-ghost w-full text-left flex items-center gap-3 text-sm">
               <ScrollText className="w-4 h-4 text-secondary-500" /> System Inquiry Logs
             </button>
           </div>

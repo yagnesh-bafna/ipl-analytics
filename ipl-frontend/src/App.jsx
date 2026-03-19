@@ -16,6 +16,7 @@ const DreamTeam = lazy(() => import('./pages/DreamTeam'))
 const Auction = lazy(() => import('./pages/Auction'))
 const Contact = lazy(() => import('./pages/Contact'))
 const AdminUsers = lazy(() => import('./pages/AdminUsers'))
+const AdminInquiries = lazy(() => import('./pages/AdminInquiries'))
 const PlayerProfile = lazy(() => import('./pages/PlayerProfile'))
 const PlayerMatchup = lazy(() => import('./pages/PlayerMatchup'))
 
@@ -52,6 +53,7 @@ export default function App() {
                   
                   {/* Admin only */}
                   <Route path="/admin/users" element={<PrivateRoute adminOnly><AdminUsers /></PrivateRoute>} />
+                  <Route path="/admin/inquiries" element={<PrivateRoute adminOnly><AdminInquiries /></PrivateRoute>} />
 
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
