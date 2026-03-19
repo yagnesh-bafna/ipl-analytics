@@ -53,16 +53,6 @@ def init_users_table():
         conn.commit()
     except: conn.rollback()
 
-    try:
-        c.execute('ALTER TABLE users ADD COLUMN otp_code TEXT')
-        conn.commit()
-    except: conn.rollback()
-
-    try:
-        c.execute('ALTER TABLE users ADD COLUMN otp_expiry TIMESTAMP')
-        conn.commit()
-    except: conn.rollback()
-
     conn.close()
 
 # Initialize the table when module is loaded
@@ -212,103 +202,8 @@ def remove_user():
     conn.close()
     return jsonify({"message": "User removed"})
 
-from flask_mail import Message
-from app import mail
-import random
-
-@auth_bp.route("/api/forgot-password", methods=["POST"])
-def forgot_password():
-    data = request.json
-    email = data.get("email")
-
-    if not email:
-        return jsonify({"error": "Email is required"}), 400
-
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute("SELECT id FROM users WHERE email = %s", (email,))
-    user = c.fetchone()
-
-    if not user:
-        conn.close()
-        # Still return success to prevent user enumeration
-        return jsonify({"message": "If an account with that email exists, a password reset OTP has been sent."}), 200
-
-    otp = str(random.randint(100000, 999999))
-    otp_expiry = datetime.now() + timedelta(minutes=10)
-
-    c.execute("UPDATE users SET otp_code = %s, otp_expiry = %s WHERE email = %s", (otp, otp_expiry, email))
-    conn.commit()
-    conn.close()
-
-    try:
-        msg = Message("Your IPL Think Tank Password Reset Code", recipients=[email])
-        msg.body = f"Your password reset OTP is: {otp}. It will expire in 10 minutes."
-        mail.send(msg)
-    except Exception as e:
-        print(f"Mail Error: {e}")
-        # Don't expose mail errors to the client
-        return jsonify({"error": "Could not send reset email."}), 500
-
-    return jsonify({"message": "If an account with that email exists, a password reset OTP has been sent."}), 200
-
-@auth_bp.route("/api/verify-otp", methods=["POST"])
-def verify_otp():
-    data = request.json
-    email = data.get("email")
-    otp = data.get("otp")
-
-    if not email or not otp:
-        return jsonify({"error": "Email and OTP are required"}), 400
-
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute("SELECT otp_code, otp_expiry FROM users WHERE email = %s", (email,))
-    user = c.fetchone()
-
-    if not user or user[0] != otp:
-        conn.close()
-        return jsonify({"error": "Invalid OTP"}), 400
-
-    if datetime.now() > user[1]:
-        conn.close()
-        return jsonify({"error": "OTP has expired"}), 400
-
-    conn.close()
-    return jsonify({"message": "OTP verified successfully"}), 200
-
-@auth_bp.route("/api/reset-password", methods=["POST"])
-def reset_password_with_otp():
-    data = request.json
-    email = data.get("email")
-    otp = data.get("otp")
-    new_password = data.get("new_password")
-
-    if not email or not otp or not new_password:
-        return jsonify({"error": "Email, OTP, and new password are required"}), 400
-
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute("SELECT otp_code, otp_expiry FROM users WHERE email = %s", (email,))
-    user = c.fetchone()
-
-    if not user or user[0] != otp:
-        conn.close()
-        return jsonify({"error": "Invalid OTP"}), 400
-
-    if datetime.now() > user[1]:
-        conn.close()
-        return jsonify({"error": "OTP has expired"}), 400
-
-    password_hash = hash_password(new_password)
-    c.execute("UPDATE users SET password_hash = %s, otp_code = NULL, otp_expiry = NULL WHERE email = %s", (password_hash, email))
-    conn.commit()
-    conn.close()
-
-    return jsonify({"message": "Password has been reset successfully"}), 200
-
 @auth_bp.route("/api/admin/user/reset_password", methods=["POST"])
-def reset_password():
+def admin_reset_password():
     data = request.json
     uid = data.get("user_id")
     new_pass = data.get("new_password")

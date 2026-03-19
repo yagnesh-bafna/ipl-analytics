@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+app = Flask(__name__)
+
 # Import all route blueprints
 from route.players import players_bp
 from route.batting import batting_bp
@@ -16,20 +18,6 @@ from route.auction import auction_bp
 from route.contact import contact_bp
 from route.auth import auth_bp
 from route.all_rounder import all_rounder_bp
-
-from flask_mail import Mail
-
-app = Flask(__name__)
-
-# Mail Configuration
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
-app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
-app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'true').lower() in ('true', '1', 't')
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
-
-mail = Mail(app)
 
 # Configure CORS
 env_origins = os.getenv("ALLOWED_ORIGINS")

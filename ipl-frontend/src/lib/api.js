@@ -23,9 +23,6 @@ const req = async (url, opts = {}) => {
 export const apiLogin = (body) => req('/api/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
 export const apiSignup = (body) => req('/api/signup', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
 export const apiGoogleLogin = (token) => req('/api/google-login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ token }) })
-export const apiForgotPassword = (email) => req('/api/forgot-password', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email }) })
-export const apiVerifyOtp = (email, otp) => req('/api/verify-otp', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, otp }) })
-export const apiResetPassword = (email, otp, newPassword) => req('/api/reset-password', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, otp, new_password: newPassword }) })
 
 // USER
 export const fetchUserStats = (userId) => req(`/api/user/stats?user_id=${userId}`)
