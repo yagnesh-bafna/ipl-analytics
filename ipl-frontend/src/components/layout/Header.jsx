@@ -70,17 +70,21 @@ export default function Header({ title, subtitle }) {
         </div>
 
         {user && showSquadInfo && (
-          <motion.div 
+          <motion.button
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate('/dream-team')}
             key={squadCount}
             className="px-4 py-2 lg:py-4 rounded-xl bg-primary-500/10 border border-primary-500/20 
                        text-primary-500 text-[11px] lg:text-[14px] font-black font-mono flex items-center justify-center gap-2.5 
-                       shadow-sm backdrop-blur-sm order-1 lg:order-2 self-stretch lg:self-auto min-w-[100px] lg:min-w-[160px]"
+                       shadow-sm backdrop-blur-sm order-1 lg:order-2 self-stretch lg:self-auto min-w-[100px] lg:min-w-[160px]
+                       hover:bg-primary-500/20 transition-colors group cursor-pointer"
           >
-            <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] animate-pulse group-hover:shadow-[0_0_15px_rgba(99,102,241,0.8)]" />
             SQUAD: {squadCount}/11
-          </motion.div>
+          </motion.button>
         )}
       </div>
     </motion.header>
