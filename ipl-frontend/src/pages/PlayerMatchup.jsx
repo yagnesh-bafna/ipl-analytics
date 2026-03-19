@@ -124,26 +124,26 @@ export default function PlayerMatchup() {
     if (comparisonMode === 'BOWLING') {
       return [
         { key: 'economy', label: 'Economy', max: 12, inverse: true },
-        { key: 'wickets', label: 'Wickets', max: 30 },
-        { key: 'bowl_sr', label: 'Bowl SR', max: 35, inverse: true },
-        { key: 'bowl_avg', label: 'Bowl Avg', max: 45, inverse: true },
-        { key: 'bowl_dot_pct', label: 'Dot Ball %', max: 60 }
+        { key: 'wickets', label: 'Wickets', max: 35 },
+        { key: 'bowl_sr', label: 'Bowl SR', max: 30, inverse: true },
+        { key: 'bowl_avg', label: 'Bowl Avg', max: 40, inverse: true },
+        { key: 'bowl_dot_pct', label: 'Dot Ball %', max: 55 }
       ];
     }
     if (comparisonMode === 'IMPACT') {
       return [
-        { key: 'strike_rate', label: 'Aggression (SR)', max: 200, crossKey: 'economy', crossMax: 12, crossInverse: true },
-        { key: 'avg', label: 'Stability (Avg)', max: 60, crossKey: 'bowl_sr', crossMax: 30, crossInverse: true },
-        { key: 'boundary_pct', label: 'Dominance (B%)', max: 35, crossKey: 'bowl_dot_pct', crossMax: 60 },
-        { key: 'finishing_rate', label: 'Pressure (Fin)', max: 100, crossKey: 'wickets', crossMax: 30 },
+        { key: 'strike_rate', label: 'Aggression (SR)', max: 220, crossKey: 'economy', crossMax: 12, crossInverse: true },
+        { key: 'avg', label: 'Stability (Avg)', max: 80, crossKey: 'bowl_sr', crossMax: 30, crossInverse: true },
+        { key: 'boundary_pct', label: 'Dominance (B%)', max: 90, crossKey: 'bowl_dot_pct', crossMax: 55 },
+        { key: 'finishing_rate', label: 'Pressure (Fin)', max: 100, crossKey: 'wickets', crossMax: 35 },
         { key: 'matches', label: 'Longevity', max: 60, crossKey: 'matches', crossMax: 60 }
       ];
     }
     return [
-      { key: 'strike_rate', label: 'Strike Rate', max: 200 },
-      { key: 'avg', label: 'Average', max: 60 },
-      { key: 'boundary_pct', label: 'Boundary %', max: 35 },
-      { key: 'dot_ball_pct', label: 'Dot Ball %', max: 50, inverse: true },
+      { key: 'strike_rate', label: 'Strike Rate', max: 220 },
+      { key: 'avg', label: 'Average', max: 80 },
+      { key: 'boundary_pct', label: 'Boundary %', max: 90 },
+      { key: 'dot_ball_pct', label: 'Dot Ball %', max: 60, inverse: true },
       { key: 'finishing_rate', label: 'Finishing Rate', max: 100 }
     ];
   }, [comparisonMode]);
