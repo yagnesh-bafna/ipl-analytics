@@ -34,6 +34,7 @@ const CONFIG = {
       { key: 'wickets',     label: 'Wkts',  sortable: true },
       { key: 'economy',     label: 'Econ',  fmt: v => v?.toFixed(2), sortable: true },
       { key: 'strike_rate', label: 'SR',  fmt: v => v?.toFixed(1) },
+      { key: 'dot_ball_pct',label: 'Dot%', fmt: v => `${v?.toFixed(1)}%` },
     ],
     nameKey: 'player',
   },

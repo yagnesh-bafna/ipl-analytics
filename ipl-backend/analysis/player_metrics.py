@@ -78,7 +78,8 @@ def bowling_metrics(bowling):
         "matches": ("match_title", "nunique"),
         "wickets": ("wickets", "sum"),
         "runs_conceded": ("runs_conceded", "sum"),
-        "overs": ("overs", "sum")
+        "overs": ("overs", "sum"),
+        "dots": ("dots", "sum")
     }
     
     # Preserve cricket_country if present
@@ -94,6 +95,8 @@ def bowling_metrics(bowling):
     df["balls"] = df["overs"] * 6
     df["economy"] = df["runs_conceded"] / df["overs"]
     df["strike_rate"] = df["balls"] / df["wickets"].replace(0,1)
+    df["avg"] = df["runs_conceded"] / df["wickets"].replace(0,1)
+    df["dot_ball_pct"] = (df["dots"] / df["balls"]) * 100
 
     return df
 

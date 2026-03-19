@@ -59,6 +59,8 @@ def bowling():
             "wickets": int(row["wickets"]),
             "economy": round(float(row["economy"]), 2),
             "strike_rate": round(float(row["strike_rate"]), 2),
+            "avg": round(float(row["avg"]), 2),
+            "dot_ball_pct": round(float(row["dot_ball_pct"]), 2),
             "season_history": season_stats
         })
 

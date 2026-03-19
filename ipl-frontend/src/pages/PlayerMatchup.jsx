@@ -73,7 +73,7 @@ export default function PlayerMatchup() {
         bowl_sr: parseFloat(p.strike_rate) || 0,
         wickets: parseInt(p.wickets) || 0,
         economy: parseFloat(p.economy) || 0,
-        bowl_dot_pct: parseFloat(p.dot_ball_pct) || 45
+        bowl_dot_pct: parseFloat(p.dot_ball_pct) || 0
       };
 
       if (existing) {
@@ -88,11 +88,11 @@ export default function PlayerMatchup() {
           name: p.player, 
           role: 'bowling',
           ...bowlStats,
-          avg: 8, 
-          strike_rate: 100,
-          boundary_pct: 5,
-          dot_ball_pct: 40,
-          finishing_rate: 20
+          avg: 0, 
+          strike_rate: 0,
+          boundary_pct: 0,
+          dot_ball_pct: 0,
+          finishing_rate: 0
         });
       }
     });
@@ -123,11 +123,11 @@ export default function PlayerMatchup() {
   const metrics = useMemo(() => {
     if (comparisonMode === 'BOWLING') {
       return [
-        { key: 'economy', label: 'Economy', max: 12, inverse: true },
-        { key: 'wickets', label: 'Wickets', max: 35 },
-        { key: 'bowl_sr', label: 'Bowl SR', max: 30, inverse: true },
-        { key: 'bowl_avg', label: 'Bowl Avg', max: 40, inverse: true },
-        { key: 'bowl_dot_pct', label: 'Dot Ball %', max: 55 }
+        { key: 'economy',      label: 'Economy',      max: 12, inverse: true },
+        { key: 'wickets',      label: 'Wickets',      max: 35 },
+        { key: 'bowl_sr',      label: 'Bowl SR',      max: 30, inverse: true },
+        { key: 'bowl_avg',     label: 'Bowl Avg',     max: 40, inverse: true },
+        { key: 'bowl_dot_pct', label: 'Bowl Dot %',   max: 55 },
       ];
     }
     if (comparisonMode === 'IMPACT') {
