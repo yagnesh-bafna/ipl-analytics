@@ -66,7 +66,7 @@ export default function Scouting({ type }) {
   const navigate = useNavigate()
   const { squad, addToSquad, removeFromSquad } = useSquad()
   const cfg = CONFIG[type] || CONFIG.batting
-  const { data, loading } = useApi(cfg.apiFn, [type])
+  const { data, loading, error } = useApi(cfg.apiFn, [type])
 
   const [search,   setSearch]   = useState('')
   const [sortKey,  setSortKey]  = useState(null)
@@ -122,7 +122,9 @@ export default function Scouting({ type }) {
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}
           className="flex-1 overflow-y-auto min-h-0 glass-card p-0 overflow-x-auto custom-scrollbar"
         >
-          {loading ? <PageLoader /> : (
+          {loading ? <PageLoader /> : error ? (
+            <div className="p-12 text-center text-red-400 font-medium">{error}</div>
+          ) : (
             <div className="min-w-full">
               <table className="data-table w-full">
                 <thead className="sticky top-0 z-10 bg-gray-50/95 dark:bg-dark-900/95 backdrop-blur shadow-sm">
