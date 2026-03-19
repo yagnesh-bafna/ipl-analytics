@@ -170,40 +170,53 @@ def player_matrix():
         bowl_metrics = bowling_metrics(bowling)
         
         # Filter for active players only
-        bat_metrics = bat_metrics[bat_metrics["player"].isin(active_players)]
-        bowl_metrics = bowl_metrics[bowl_metrics["player"].isin(active_players)]
+        bat_active = bat_metrics[bat_metrics["player"].isin(active_players)]
+        bowl_active = bowl_metrics[bowl_metrics["player"].isin(active_players)]
+        
+        # Fallback: if filter is too strict, show all players
+        if bat_active.empty and bowl_active.empty:
+            bat_active = bat_metrics
+            bowl_active = bowl_metrics
 
         # Prepare Batter Data
-        bat_part = bat_metrics[["player", "runs", "strike_rate", "consistency", "boundary_pct"]].copy()
-        bat_part["type"] = "Batter"
-        bat_part["cons_val"] = bat_part["consistency"]
-        
-        # EXPLOSIVENESS RECALCULATION: 
-        # Use a higher benchmark (220 SR) to spread out the top players
-        # And give more weight to Strike Rate
-        bat_part["exp_val"] = (bat_part["strike_rate"] * 0.7) + (bat_part["boundary_pct"] * 0.3)
-        
-        # Normalize Batting using a fixed upper benchmark to avoid everyone hitting 100
-        def custom_normalize(series, benchmark):
-            return (series / benchmark * 100).clip(upper=100)
+        bat_metrics = bat_active.copy()
+        if bat_metrics.empty:
+            bat_part = pd.DataFrame(columns=["player", "runs", "strike_rate", "consistency", "boundary_pct", "type", "norm_cons", "norm_exp"])
+        else:
+            bat_part = bat_metrics[["player", "runs", "strike_rate", "consistency", "boundary_pct"]].copy()
+            bat_part["type"] = "Batter"
+            bat_part["cons_val"] = bat_part["consistency"]
+            bat_part["exp_val"] = (bat_part["strike_rate"] * 0.7) + (bat_part["boundary_pct"] * 0.3)
+            
+            def custom_normalize(series, benchmark):
+                return (series / benchmark * 100).clip(upper=100)
 
-        bat_part["norm_cons"] = custom_normalize(bat_part["cons_val"], 60) # 60 runs/match benchmark
-        bat_part["norm_exp"] = custom_normalize(bat_part["exp_val"], 160) # (~210 SR benchmark)
+            bat_part["norm_cons"] = custom_normalize(bat_part["cons_val"], 60)
+            bat_part["norm_exp"] = custom_normalize(bat_part["exp_val"], 160)
         
         # Prepare Bowler Data
-        bowl_part = bowl_metrics[["player", "wickets", "economy", "strike_rate"]].copy()
-        bowl_part["type"] = "Bowler"
-        # For bowlers, consistency is low economy (12 - econ)
-        bowl_part["cons_val"] = (12 - bowl_part["economy"]).clip(lower=0)
-        # Explosiveness is low strike rate (35 - sr)
-        bowl_part["exp_val"] = (35 - bowl_part["strike_rate"]).clip(lower=0)
-        
-        # Normalize Bowling
-        bowl_part["norm_cons"] = custom_normalize(bowl_part["cons_val"], 8) # Econ of 4 benchmark
-        bowl_part["norm_exp"] = custom_normalize(bowl_part["exp_val"], 25) # SR of 10 benchmark
-        
+        bowl_metrics = bowl_active.copy()
+        if bowl_metrics.empty:
+            bowl_part = pd.DataFrame(columns=["player", "wickets", "economy", "strike_rate", "runs", "type", "norm_cons", "norm_exp"])
+        else:
+            bowl_metrics["runs"] = 0
+            bowl_part = bowl_metrics[["player", "wickets", "economy", "strike_rate", "runs"]].copy()
+            bowl_part["type"] = "Bowler"
+            bowl_part["cons_val"] = (12 - bowl_part["economy"]).clip(lower=0)
+            bowl_part["exp_val"] = (35 - bowl_part["strike_rate"]).clip(lower=0)
+            
+            def custom_normalize(series, benchmark):
+                return (series / benchmark * 100).clip(upper=100)
+                
+            bowl_part["norm_cons"] = custom_normalize(bowl_part["cons_val"], 8)
+            bowl_part["norm_exp"] = custom_normalize(bowl_part["exp_val"], 25)
+            
         df = pd.concat([bat_part, bowl_part], ignore_index=True)
         
+        # Replace all non-finite values (NaN, Inf) with 0 before any further processing
+        import numpy as np
+        df = df.replace([np.inf, -np.inf], np.nan).fillna(0)
+
         if df.empty:
             return jsonify([])
 
@@ -214,13 +227,16 @@ def player_matrix():
 
         df = df.merge(players_df, left_on="player", right_on="player_name", how="left")
         
+        # Replace NaN from merge
+        df = df.fillna(0)
+
         # Deduplicate: Prioritize the row with higher overall metrics within its type
         df["impact_score"] = df["norm_cons"] + df["norm_exp"]
         df = df.sort_values("impact_score", ascending=False).drop_duplicates("player")
         
         # Dynamic Median Lines: Use the actual mean of the active dataset
-        median_cons = df["norm_cons"].mean()
-        median_exp = df["norm_exp"].mean()
+        median_cons = df["norm_cons"].mean() if not df.empty else 50
+        median_exp = df["norm_exp"].mean() if not df.empty else 50
 
         def matrix_category(row):
             cons = row["norm_cons"]
@@ -237,17 +253,14 @@ def player_matrix():
         existing_cols = [c for c in cols if c in df.columns]
         result = df[existing_cols].copy()
         
-        return jsonify(result.to_dict(orient="records"))
-    except Exception as e:
-        print(f"Matrix API Error: {e}")
-        return jsonify({"error": str(e)}), 500
-        
         # Replace all non-finite values (NaN, Inf) with None for JSON compatibility
         import numpy as np
         result = result.replace({np.nan: None, np.inf: None, -np.inf: None})
+        
         return jsonify(result.to_dict(orient="records"))
     except Exception as e:
-        print(f"Matrix Error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # -----------------------------

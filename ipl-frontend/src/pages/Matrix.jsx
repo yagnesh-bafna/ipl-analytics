@@ -43,11 +43,11 @@ const MatrixTooltip = ({ active, payload }) => {
 export default function Matrix() {
   const navigate = useNavigate()
   const { addToSquad } = useSquad()
-  const { data, loading } = useApi(fetchMatrix)
+  const { data, loading, error } = useApi(fetchMatrix)
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {
-    if (!data) return []
+    if (!data || !Array.isArray(data)) return []
     const q = search.toLowerCase()
     return q ? data.filter(p => p.player.toLowerCase().includes(q)) : data
   }, [data, search])
@@ -57,7 +57,12 @@ export default function Matrix() {
     filtered.forEach(p => {
       const cat = p.matrix_category || 'Replacement Level'
       if (!groups[cat]) groups[cat] = []
-      groups[cat].push({ x: p.norm_cons, y: p.norm_exp, name: p.player })
+      // Use p.norm_cons and p.norm_exp directly, as those are the keys from the API
+      groups[cat].push({ 
+        x: Number(p.norm_cons) || 0, 
+        y: Number(p.norm_exp) || 0, 
+        name: p.player 
+      })
     })
     return Object.entries(groups).map(([cat, pts]) => ({
       name: cat, data: pts, fill: CATEGORIES[cat]?.color || '#94a3b8'
@@ -94,7 +99,18 @@ export default function Matrix() {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
-          {loading ? <PageLoader /> : (
+          {loading ? <PageLoader /> : error ? (
+            <div className="flex flex-col items-center justify-center h-64 glass-card border-red-500/20">
+              <p className="text-red-400 mb-2">Failed to load matrix data</p>
+              <p className="text-gray-500 text-sm">{error}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded-lg text-xs transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
             <>
               {/* Scatter chart */}
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }} className="glass-card mb-8" style={{ height: 450 }}>
