@@ -99,11 +99,26 @@ def magic_fill():
         
         # 4. Get role-specific candidates (Top 15 for each to ensure variety)
         # Using the scoring functions from player_metrics.py
-        openers_df = score_openers(bat_m).head(15)
-        middle_df = score_middle(bat_m).head(15)
-        finishers_df = score_finishers(bat_m).head(15)
-        bowlers_df = score_bowlers(bowl_m).head(15)
-        allrounders_df = score_allrounders(bat_m, bowl_m).head(15)
+        # Handle cases where DataFrames might be empty
+        def safe_get_top(df_func, data, count=15):
+            try:
+                res = df_func(data)
+                return res.head(count) if not res.empty else pd.DataFrame()
+            except:
+                return pd.DataFrame()
+
+        def safe_get_allr(bat, bowl, count=15):
+            try:
+                res = score_allrounders(bat, bowl)
+                return res.head(count) if not res.empty else pd.DataFrame()
+            except:
+                return pd.DataFrame()
+
+        openers_df = safe_get_top(score_openers, bat_m)
+        middle_df = safe_get_top(score_middle, bat_m)
+        finishers_df = safe_get_top(score_finishers, bat_m)
+        bowlers_df = safe_get_top(score_bowlers, bowl_m)
+        allrounders_df = safe_get_allr(bat_m, bowl_m)
 
         squad = []
         overseas_count = 0
@@ -111,6 +126,7 @@ def magic_fill():
 
         def pick_player(df, count, role_label):
             nonlocal overseas_count
+            if df.empty: return
             picks = 0
             # Shuffle the top candidates for randomness
             candidates = df.sample(frac=1).to_dict(orient="records")
@@ -119,7 +135,7 @@ def magic_fill():
                 if picks >= count: break
                 if p["player"] in selected_names: continue
                 
-                is_overseas = p.get("cricket_country", "India").lower() != "india"
+                is_overseas = str(p.get("cricket_country", "India")).lower() != "india"
                 
                 # Enforce overseas limit (max 4)
                 if is_overseas and overseas_count >= 4:
@@ -144,27 +160,39 @@ def magic_fill():
         pick_player(allrounders_df, 2, "All-Rounder")
         pick_player(bowlers_df, 3, "Bowler")
 
-        # Fallback: If for some reason we didn't get 11 players (e.g. constraints too tight), 
-        # fill the remaining slots with anyone from the top lists who isn't overseas (if limit reached)
+        # Fallback: If for some reason we didn't get 11 players
         if len(squad) < 11:
-            all_candidates = pd.concat([openers_df, middle_df, finishers_df, allrounders_df, bowlers_df]).drop_duplicates("player")
-            all_candidates = all_candidates.sample(frac=1).to_dict(orient="records")
-            for p in all_candidates:
-                if len(squad) >= 11: break
-                if p["player"] in selected_names: continue
-                is_overseas = p.get("cricket_country", "India").lower() != "india"
-                if is_overseas and overseas_count >= 4: continue
-                
-                squad.append({
-                    "name": p["player"],
-                    "roles": ["Squad Member"],
-                    "type": "all_rounder",
-                    "country": p.get("cricket_country", "India")
-                })
-                selected_names.add(p["player"])
-                if is_overseas: overseas_count += 1
+            dfs_to_concat = [df for df in [openers_df, middle_df, finishers_df, allrounders_df, bowlers_df] if not df.empty]
+            if dfs_to_concat:
+                all_candidates = pd.concat(dfs_to_concat, sort=False).drop_duplicates("player")
+                all_candidates = all_candidates.sample(frac=1).to_dict(orient="records")
+                for p in all_candidates:
+                    if len(squad) >= 11: break
+                    if p["player"] in selected_names: continue
+                    is_overseas = str(p.get("cricket_country", "India")).lower() != "india"
+                    if is_overseas and overseas_count >= 4: continue
+                    
+                    squad.append({
+                        "name": p["player"],
+                        "roles": ["Squad Member"],
+                        "type": "all_rounder",
+                        "country": p.get("cricket_country", "India")
+                    })
+                    selected_names.add(p["player"])
+                    if is_overseas: overseas_count += 1
 
-        return jsonify(squad)
+        # Final check for NaN/Inf in the list of dicts (JSON safety)
+        import json
+        def clean_json(obj):
+            if isinstance(obj, float):
+                if np.isnan(obj) or np.isinf(obj): return 0.0
+            if isinstance(obj, dict):
+                return {k: clean_json(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [clean_json(x) for x in obj]
+            return obj
+
+        return jsonify(clean_json(squad))
     except Exception as e:
         import traceback
         traceback.print_exc()
