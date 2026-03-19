@@ -12,9 +12,9 @@ const navItems = [
   { path: '/batting',     label: 'Batting Scouting',  icon: User },
   { path: '/all-rounder', label: 'All-Rounder',       icon: BarChart3 },
   { path: '/bowling',     label: 'Bowling Scouting',  icon: Target },
+  { path: '/matchup',     label: 'Player Matchup',    icon: GitCompare },
   { path: '/matrix',      label: 'Player Matrix',     icon: Layers },
   { path: '/dream-team',  label: 'Dream Team',        icon: Award },
-  { path: '/matchup',     label: 'Player Matchup',    icon: GitCompare },
   { path: '/auction',     label: 'Auction Predictor', icon: Banknote },
   { path: '/contact',     label: 'Contact Us',        icon: Mail },
 ]
