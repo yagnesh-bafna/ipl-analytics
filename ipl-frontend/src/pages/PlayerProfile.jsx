@@ -56,7 +56,7 @@ export default function PlayerProfile() {
         ])).sort((a, b) => a - b)
         setSelectedYears(years)
         
-        if (type === 'all_rounder') {
+        if (type === 'all_rounder' || type === 'Matrix') {
           if (!data.batting?.length && data.bowling?.length) setGraphType('bowling')
           else setGraphType('batting')
         } else {
@@ -207,7 +207,7 @@ export default function PlayerProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Left Column: Tables */}
           <div className="lg:col-span-5 flex flex-col gap-8">
-            {(type === 'batting' || type === 'all_rounder') && (data?.batting?.length > 0) && (
+            {(type === 'batting' || type === 'all_rounder' || type === 'Matrix') && (data?.batting?.length > 0) && (
               <div className="glass-card flex-1 overflow-hidden bg-white/50 dark:bg-dark-900/40 p-6 flex flex-col">
                 <h4 className="text-sm font-black uppercase tracking-widest text-primary-500 mb-6 flex items-center gap-3">
                   <div className="w-6 h-1 rounded-full bg-primary-500 shadow-lg shadow-primary-500/50" />
@@ -246,7 +246,7 @@ export default function PlayerProfile() {
               </div>
             )}
 
-            {(type === 'bowling' || type === 'all_rounder') && (data?.bowling?.length > 0) && (
+            {(type === 'bowling' || type === 'all_rounder' || type === 'Matrix') && (data?.bowling?.length > 0) && (
               <div className="glass-card flex-1 overflow-hidden bg-white/50 dark:bg-dark-900/40 p-6 flex flex-col">
                 <h4 className="text-sm font-black uppercase tracking-widest text-secondary-500 mb-6 flex items-center gap-3">
                   <div className="w-6 h-1 rounded-full bg-secondary-500 shadow-lg shadow-secondary-500/50" />
@@ -293,7 +293,7 @@ export default function PlayerProfile() {
                 <div className="flex items-center gap-3">
                   <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Performance Visualization</h4>
                 </div>
-                {type === 'all_rounder' && (
+                {(type === 'all_rounder' || (type === 'Matrix' && data?.batting?.length > 0 && data?.bowling?.length > 0)) && (
                   <div className="flex gap-2 p-1.5 bg-gray-100 dark:bg-dark-950 rounded-2xl border border-gray-200 dark:border-dark-800">
                     <button 
                       onClick={() => setGraphType('batting')}
