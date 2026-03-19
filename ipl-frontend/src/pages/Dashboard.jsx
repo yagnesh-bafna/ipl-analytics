@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import Layout from '../components/layout/Layout'
 import Header from '../components/layout/Header'
 import { PageLoader } from '../components/ui/Spinner'
-import { fetchUserStats, fetchTrending, fetchAdminStats, fetchAdminLogs } from '../lib/api.js'
+import { fetchUserStats, fetchTrending, fetchAdminStats, fetchAdminLogs, getLastLatency } from '../lib/api.js'
 import {
   Layers, Zap, Target, Wind, Grid3x3, Users, TrendingUp, BarChart3, ScrollText
 } from 'lucide-react'
@@ -52,9 +52,15 @@ function UserDashboard() {
   const navigate = useNavigate()
   const [stats, setStats]       = useState(null)
   const [trending, setTrending] = useState([])
+  const [latency, setLatency]   = useState(getLastLatency() || 12)
 
   useEffect(() => {
-    fetchUserStats(user.id).then(({ ok, data }) => { if (ok) setStats(data) })
+    fetchUserStats(user.id).then(({ ok, data }) => { 
+      if (ok) {
+        setStats(data)
+        setLatency(getLastLatency())
+      } 
+    })
     fetchTrending().then(({ ok, data }) => { if (ok) setTrending(data.slice(0, 3)) })
   }, [user.id])
 
@@ -100,7 +106,9 @@ function UserDashboard() {
           <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col items-end text-right">
               <div className="text-[10px] uppercase font-bold text-gray-400 tracking-tighter mb-1">Compute Latency</div>
-              <div className="text-xs font-mono font-bold text-emerald-500">12ms (Optimal)</div>
+              <div className="text-xs font-mono font-bold text-emerald-500">
+                {latency}ms ({latency < 200 ? 'Optimal' : latency < 1000 ? 'Stable' : 'Slow'})
+              </div>
             </div>
             <div className="w-24 h-24 opacity-60 group-hover:opacity-100 transition-opacity">
                <LottieAnimation url={DOTS_ANIM} className="w-full h-full" />
@@ -166,10 +174,16 @@ function AdminDashboard() {
   const [stats, setStats]     = useState(null)
   const [trending, setTrending] = useState([])
   const [logs, setLogs]         = useState([])
+  const [latency, setLatency]   = useState(getLastLatency() || 12)
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetchAdminStats().then(({ ok, data }) => { if (ok) setStats(data) })
+    fetchAdminStats().then(({ ok, data }) => { 
+      if (ok) {
+        setStats(data)
+        setLatency(getLastLatency())
+      }
+    })
     fetchTrending().then(({ ok, data }) => { if (ok) setTrending(data.slice(0, 8)) })
     fetchAdminLogs().then(({ ok, data }) => { if (ok) setLogs(data.slice(0, 5)) })
   }, [])

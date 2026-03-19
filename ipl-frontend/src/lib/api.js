@@ -1,5 +1,9 @@
 const BASE = import.meta.env.VITE_API_BASE_URL || ''  // Vite proxies to Flask or uses production URL
 
+// Track the latest latency for the UI
+let lastLatency = 0
+export const getLastLatency = () => lastLatency
+
 const req = async (url, opts = {}) => {
   const fullUrl = BASE + url
   console.log(`[API] Request: ${opts.method || 'GET'} ${fullUrl}`)
@@ -8,10 +12,14 @@ const req = async (url, opts = {}) => {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 25000) // 25s timeout
   
+  const start = performance.now()
   try {
     const res = await fetch(fullUrl, { ...opts, signal: controller.signal })
+    const end = performance.now()
+    lastLatency = Math.round(end - start)
+    
     clearTimeout(timeoutId)
-    console.log(`[API] Response: ${res.status} ${res.statusText}`)
+    console.log(`[API] Response: ${res.status} ${res.statusText} (${lastLatency}ms)`)
     
     const contentType = res.headers.get('content-type')
     let data = {}
