@@ -303,121 +303,116 @@ def team_of_tournament():
 def player_matrix():
     try:
         conn = get_connection()
-        # Only consider players who have played in recent seasons (2024 or 2025)
-        recent_batting = pd.read_sql("SELECT * FROM batting_stats WHERE season IN (2024, 2025)", conn)
-        recent_bowling = pd.read_sql("SELECT * FROM bowling_stats WHERE season IN (2024, 2025)", conn)
+        print("[Matrix] Database connected...")
         
-        # Also need full historical data for career stats if we want total impact, 
-        # but the prompt specifically mentioned Ben Stokes (inactive).
-        # Let's filter the final list to only include players active in 2024/2025.
-        active_players = set(recent_batting["player"].unique()) | set(recent_bowling["bowler"].unique())
-
+        # 1. Load active data (2024/2025)
+        # Using a PARTICIPATION FILTER (min 30 balls faced OR 12 overs bowled)
+        # to remove noise and cameos.
         batting_query = """
         SELECT b.*, p.cricket_country 
         FROM batting_stats b
         LEFT JOIN players p ON b.player = p.player_name
+        WHERE b.season IN (2024, 2025)
         """
         bowling_query = """
         SELECT b.*, p.cricket_country 
         FROM bowling_stats b
         LEFT JOIN players p ON b.bowler = p.player_name
+        WHERE b.season IN (2024, 2025)
         """
+        
         batting = pd.read_sql(batting_query, conn)
         bowling = pd.read_sql(bowling_query, conn)
         conn.close()
 
-        bat_metrics = batting_metrics(batting)
-        bowl_metrics = bowling_metrics(bowling)
+        # 2. Process metrics
+        bat_m = batting_metrics(batting)
+        bowl_m = bowling_metrics(bowling)
         
-        # Filter for active players only
-        bat_active = bat_metrics[bat_metrics["player"].isin(active_players)]
-        bowl_active = bowl_metrics[bowl_metrics["player"].isin(active_players)]
+        # ELITE PARTICIPATION FILTER:
+        # Min 50 runs OR 5 wickets to be considered for the Matrix
+        bat_m = bat_m[bat_m["runs"] >= 50].copy()
+        bowl_m = bowl_m[bowl_m["wickets"] >= 5].copy()
         
-        # Fallback: if filter is too strict, show all players
-        if bat_active.empty and bowl_active.empty:
-            bat_active = bat_metrics
-            bowl_active = bowl_metrics
+        # 3. SMART ROLE DETECTION (Batter, Bowler, or All-Rounder)
+        # Merge both to find overlaps
+        all_players = pd.merge(
+            bat_m[["player", "runs", "strike_rate", "consistency", "boundary_pct"]],
+            bowl_m[["player", "wickets", "economy", "strike_rate", "dot_ball_pct"]],
+            on="player",
+            how="outer",
+            suffixes=("_bat", "_bowl")
+        ).fillna(0)
 
-        # Prepare Batter Data
-        bat_metrics = bat_active.copy()
-        if bat_metrics.empty:
-            bat_part = pd.DataFrame(columns=["player", "runs", "strike_rate", "consistency", "boundary_pct", "type", "norm_cons", "norm_exp"])
-        else:
-            bat_part = bat_metrics[["player", "runs", "strike_rate", "consistency", "boundary_pct"]].copy()
-            bat_part["type"] = "Batter"
-            bat_part["cons_val"] = bat_part["consistency"]
-            bat_part["exp_val"] = (bat_part["strike_rate"] * 0.7) + (bat_part["boundary_pct"] * 0.3)
-            
-            def custom_normalize(series, benchmark):
-                return (series / benchmark * 100).clip(upper=100)
+        def determine_type(row):
+            if row["runs"] >= 100 and row["wickets" ] >= 5:
+                return "All-Rounder"
+            if row["wickets"] >= 5:
+                return "Bowler"
+            return "Batter"
 
-            bat_part["norm_cons"] = custom_normalize(bat_part["cons_val"], 60)
-            bat_part["norm_exp"] = custom_normalize(bat_part["exp_val"], 160)
-        
-        # Prepare Bowler Data
-        bowl_metrics = bowl_active.copy()
-        if bowl_metrics.empty:
-            bowl_part = pd.DataFrame(columns=["player", "wickets", "economy", "strike_rate", "runs", "type", "norm_cons", "norm_exp"])
-        else:
-            bowl_metrics["runs"] = 0
-            bowl_part = bowl_metrics[["player", "wickets", "economy", "strike_rate", "runs"]].copy()
-            bowl_part["type"] = "Bowler"
-            bowl_part["cons_val"] = (12 - bowl_part["economy"]).clip(lower=0)
-            bowl_part["exp_val"] = (35 - bowl_part["strike_rate"]).clip(lower=0)
-            
-            def custom_normalize(series, benchmark):
-                return (series / benchmark * 100).clip(upper=100)
-                
-            bowl_part["norm_cons"] = custom_normalize(bowl_part["cons_val"], 8)
-            bowl_part["norm_exp"] = custom_normalize(bowl_part["exp_val"], 25)
-            
-        df = pd.concat([bat_part, bowl_part], ignore_index=True)
-        
-        # Replace all non-finite values (NaN, Inf) with 0 before any further processing
-        import numpy as np
-        df = df.replace([np.inf, -np.inf], np.nan).fillna(0)
+        all_players["type"] = all_players.apply(determine_type, axis=1)
 
-        if df.empty:
-            return jsonify([])
+        # 4. WEIGHTED SCORING & HIGHER BENCHMARKS
+        # Higher benchmarks push "average" players down the chart
+        def custom_normalize(series, benchmark):
+            return (series / benchmark * 100).clip(upper=100)
 
-        # Join with players table for real age and country
-        conn = get_connection()
-        players_df = pd.read_sql("SELECT player_name, age, birth_country, cricket_country FROM players", conn)
-        conn.close()
+        # BATTER SCORES
+        all_players["bat_cons"] = custom_normalize(all_players["consistency"], 50) # 50 runs/match benchmark
+        all_players["bat_exp"] = (
+            custom_normalize(all_players["strike_rate_bat"], 180) * 0.7 +
+            custom_normalize(all_players["boundary_pct"], 60) * 0.3
+        )
 
-        df = df.merge(players_df, left_on="player", right_on="player_name", how="left")
-        
-        # Replace NaN from merge
-        df = df.fillna(0)
+        # BOWLER SCORES (Consistency = Low Economy, Explosiveness = Wickets/Match + Dots)
+        # Economy benchmark of 7.5 (15 - 7.5 = 7.5 target)
+        all_players["bowl_cons"] = custom_normalize((15 - all_players["economy"]).clip(lower=0), 7.5)
+        # Wickets benchmark (e.g., 2 per match)
+        all_players["bowl_exp"] = (
+            custom_normalize(all_players["wickets"], 15) * 0.6 + # 15 wickets in a season benchmark
+            custom_normalize(all_players["dot_ball_pct"], 45) * 0.4 # 45% dot balls benchmark
+        )
 
-        # Deduplicate: Prioritize the row with higher overall metrics within its type
-        df["impact_score"] = df["norm_cons"] + df["norm_exp"]
-        df = df.sort_values("impact_score", ascending=False).drop_duplicates("player")
-        
-        # Dynamic Median Lines: Use the actual mean of the active dataset
-        median_cons = df["norm_cons"].mean() if not df.empty else 50
-        median_exp = df["norm_exp"].mean() if not df.empty else 50
+        # FINAL MATRIX COORDINATES
+        def calc_coords(row):
+            if row["type"] == "Batter":
+                return row["bat_cons"], row["bat_exp"]
+            if row["type"] == "Bowler":
+                return row["bowl_cons"], row["bowl_exp"]
+            # All-Rounder: Average of both
+            return (row["bat_cons"] + row["bowl_cons"]) / 2, (row["bat_exp"] + row["bowl_exp"]) / 2
 
-        def matrix_category(row):
+        all_players["norm_cons"], all_players["norm_exp"] = zip(*all_players.apply(calc_coords, axis=1))
+
+        # 5. CATEGORIZATION (Based on the new spread-out data)
+        # Dynamic Median Lines
+        median_cons = all_players["norm_cons"].mean()
+        median_exp = all_players["norm_exp"].mean()
+
+        def categorize(row):
             cons = row["norm_cons"]
             exp = row["norm_exp"]
-            if cons > median_cons and exp > median_exp: return "Superstar"
-            elif cons > median_cons and exp <= median_exp: return "Anchor"
-            elif cons <= median_cons and exp > median_exp: return "Wildcard"
-            else: return "Replacement Level"
-                
-        df["matrix_category"] = df.apply(matrix_category, axis=1)
+            if cons >= median_cons and exp >= median_exp: return "Superstar"
+            if cons >= median_cons: return "Anchor"
+            if exp >= median_exp: return "Wildcard"
+            return "Replacement Level"
+
+        all_players["matrix_category"] = all_players.apply(categorize, axis=1)
+
+        # 6. JSON CLEANUP & RETURN
+        cols = ["player", "type", "runs", "strike_rate_bat", "wickets", "matrix_category", "norm_cons", "norm_exp"]
+        result = all_players[cols].rename(columns={"strike_rate_bat": "strike_rate"}).to_dict(orient="records")
         
-        # Return useful subset
-        cols = ["player", "type", "runs", "strike_rate", "consistency", "norm_cons", "norm_exp", "matrix_category", "age", "birth_country", "cricket_country"]
-        existing_cols = [c for c in cols if c in df.columns]
-        result = df[existing_cols].copy()
-        
-        # Replace all non-finite values (NaN, Inf) with None for JSON compatibility
+        # Clean numeric values for JSON
         import numpy as np
-        result = result.replace({np.nan: None, np.inf: None, -np.inf: None})
+        def clean_val(v):
+            if isinstance(v, float) and (np.isnan(v) or np.isinf(v)): return 0.0
+            return v
         
-        return jsonify(result.to_dict(orient="records"))
+        final_result = [{k: clean_val(v) for k, v in r.items()} for r in result]
+        return jsonify(final_result)
+
     except Exception as e:
         import traceback
         traceback.print_exc()
