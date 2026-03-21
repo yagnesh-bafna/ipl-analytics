@@ -47,7 +47,8 @@ def batting_metrics(batting):
         "runs": ("runs", "sum"),
         "balls": ("balls", "sum"),
         "fours": ("fours", "sum"),
-        "sixes": ("sixes", "sum")
+        "sixes": ("sixes", "sum"),
+        "avg_pos": ("batting_position", "mean") # Track average batting position
     }
     
     # Preserve cricket_country if present (it's added in the DB join)
@@ -86,11 +87,13 @@ def bowling_metrics(bowling):
     if "cricket_country" in bowling.columns:
         agg_dict["cricket_country"] = ("cricket_country", "first")
 
-    df = bowling.groupby("player" if "player" in bowling.columns else "bowler").agg(**agg_dict).reset_index()
+    # Use 'player' or 'bowler' depending on availability
+    id_col = "player" if "player" in bowling.columns else "bowler"
+    df = bowling.groupby(id_col).agg(**agg_dict).reset_index()
     
     # Standardize column name to 'player' for cross-metric compatibility
-    if "bowler" in df.columns:
-        df = df.rename(columns={"bowler": "player"})
+    if id_col != "player":
+        df = df.rename(columns={id_col: "player"})
 
     # Convert cricket overs notation (e.g., 4.2) to total balls
     # 4.2 -> 4*6 + 2 = 26 balls
@@ -117,13 +120,15 @@ def classify_roles(df):
     roles = []
 
     for _, row in df.iterrows():
+        pos = row.get("avg_pos", 4) # Default to middle order if pos unknown
+        sr = row["strike_rate"]
+        bp = row["boundary_pct"]
 
-        if row["strike_rate"] > 150 and row["boundary_pct"] > 50:
-            roles.append("Finisher")
-
-        elif row["strike_rate"] > 135:
+        # HEURISTIC ROLE CLASSIFICATION
+        if pos <= 3:
             roles.append("Opener")
-
+        elif pos >= 6 and sr > 140 and bp > 45:
+            roles.append("Finisher")
         else:
             roles.append("Middle Order")
 

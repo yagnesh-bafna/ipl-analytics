@@ -95,15 +95,21 @@ def magic_fill():
         def safe_get_top(df_func, data, count=15):
             try:
                 res = df_func(data)
-                return res.head(count) if not res.empty else pd.DataFrame()
+                if res.empty:
+                    print(f"[Magic Fill] No candidates found for function: {df_func.__name__}")
+                    return pd.DataFrame()
+                return res.head(count)
             except Exception as e:
-                print(f"[Magic Fill] Error in scoring: {e}")
+                print(f"[Magic Fill] Error in scoring function {df_func.__name__}: {e}")
                 return pd.DataFrame()
 
         def safe_get_allr(bat, bowl, count=15):
             try:
                 res = score_allrounders(bat, bowl)
-                return res.head(count) if not res.empty else pd.DataFrame()
+                if res.empty:
+                    print("[Magic Fill] No All-Rounders found in current season")
+                    return pd.DataFrame()
+                return res.head(count)
             except Exception as e:
                 print(f"[Magic Fill] Error in all-rounder scoring: {e}")
                 return pd.DataFrame()
@@ -120,10 +126,13 @@ def magic_fill():
 
         def pick_player(df, count, role_label):
             nonlocal overseas_count
-            if df.empty: return
+            if df is None or df.empty: return
             picks = 0
+            
             # Shuffle the top candidates for randomness
-            candidates = df.sample(frac=1).to_dict(orient="records")
+            # Ensure we have enough candidates to sample
+            n_samples = min(len(df), len(df))
+            candidates = df.sample(n=n_samples).to_dict(orient="records")
             
             for p in candidates:
                 if picks >= count: break
@@ -148,6 +157,8 @@ def magic_fill():
                 picks += 1
 
         # Build balanced squad: 2 Openers, 3 Middle, 1 Finisher, 2 Allrounders, 3 Bowlers
+        print(f"[Magic Fill] Starting selection. Openers: {len(openers_df)}, Middle: {len(middle_df)}, Finishers: {len(finishers_df)}, Allrounders: {len(allrounders_df)}, Bowlers: {len(bowlers_df)}")
+        
         pick_player(openers_df, 2, "Opener")
         pick_player(middle_df, 3, "Middle Order")
         pick_player(finishers_df, 1, "Finisher")
@@ -156,9 +167,11 @@ def magic_fill():
 
         # Fallback: If for some reason we didn't get 11 players
         if len(squad) < 11:
-            dfs_to_concat = [df for df in [openers_df, middle_df, finishers_df, allrounders_df, bowlers_df] if not df.empty]
+            print(f"[Magic Fill] Squad only has {len(squad)} players. Attempting fallback.")
+            dfs_to_concat = [df for df in [openers_df, middle_df, finishers_df, allrounders_df, bowlers_df] if df is not None and not df.empty]
             if dfs_to_concat:
                 all_candidates = pd.concat(dfs_to_concat, sort=False).drop_duplicates("player")
+                # Shuffle all candidates
                 all_candidates = all_candidates.sample(frac=1).to_dict(orient="records")
                 for p in all_candidates:
                     if len(squad) >= 11: break
@@ -169,11 +182,13 @@ def magic_fill():
                     squad.append({
                         "name": p["player"],
                         "roles": ["Squad Member"],
-                        "type": "all_rounder",
+                        "type": "all_rounder", # Default fallback type
                         "country": p.get("cricket_country", "India")
                     })
                     selected_names.add(p["player"])
                     if is_overseas: overseas_count += 1
+
+        print(f"[Magic Fill] Squad generation complete. Final size: {len(squad)}")
 
         # Final check for NaN/Inf in the list of dicts (JSON safety)
         import json
