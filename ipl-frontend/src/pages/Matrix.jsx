@@ -45,35 +45,69 @@ export default function Matrix() {
   const { addToSquad } = useSquad()
   const { data, loading, error } = useApi(fetchMatrix)
   const [search, setSearch] = useState('')
+  const [selectedRole, setSelectedRole] = useState('All')
 
   const filtered = useMemo(() => {
     if (!data || !Array.isArray(data)) return []
+    
+    // 1. Role Filter
+    let base = selectedRole === 'All' 
+      ? data 
+      : data.filter(p => p.type === selectedRole)
+
+    // 2. Search Filter
     const q = search.toLowerCase()
-    return q ? data.filter(p => p.player.toLowerCase().includes(q)) : data
-  }, [data, search])
+    return q ? base.filter(p => p.player.toLowerCase().includes(q)) : base
+  }, [data, search, selectedRole])
+
+  // Calculate dynamic median lines based on the filtered subset
+  const { mx, my } = useMemo(() => {
+    if (!filtered.length) return { mx: 50, my: 50 }
+    const xSum = filtered.reduce((acc, p) => acc + (Number(p.norm_cons) || 0), 0)
+    const ySum = filtered.reduce((acc, p) => acc + (Number(p.norm_exp) || 0), 0)
+    return {
+      mx: xSum / filtered.length,
+      my: ySum / filtered.length
+    }
+  }, [filtered])
 
   const dataset = useMemo(() => {
     const groups = {}
     filtered.forEach(p => {
-      const cat = p.matrix_category || 'Replacement Level'
+      // Use the dynamic median lines to categorize on the fly for the chart
+      const cons = Number(p.norm_cons) || 0
+      const exp = Number(p.norm_exp) || 0
+      
+      let cat = 'Replacement Level'
+      if (cons >= mx && exp >= my) cat = 'Superstar'
+      else if (cons >= mx) cat = 'Anchor'
+      else if (exp >= my) cat = 'Wildcard'
+
       if (!groups[cat]) groups[cat] = []
-      // Use p.norm_cons and p.norm_exp directly, as those are the keys from the API
       groups[cat].push({ 
-        x: Number(p.norm_cons) || 0, 
-        y: Number(p.norm_exp) || 0, 
-        name: p.player 
+        x: cons, 
+        y: exp, 
+        name: p.player,
+        originalCategory: p.matrix_category // Keep for tooltip if needed
       })
     })
     return Object.entries(groups).map(([cat, pts]) => ({
       name: cat, data: pts, fill: CATEGORIES[cat]?.color || '#94a3b8'
     }))
-  }, [filtered])
+  }, [filtered, mx, my])
 
   const counts = useMemo(() => {
-    const c = {}
-    filtered.forEach(p => { const cat = p.matrix_category || 'Replacement Level'; c[cat] = (c[cat] || 0) + 1 })
+    const c = { Superstar: 0, Anchor: 0, Wildcard: 0, 'Replacement Level': 0 }
+    filtered.forEach(p => {
+      const cons = Number(p.norm_cons) || 0
+      const exp = Number(p.norm_exp) || 0
+      if (cons >= mx && exp >= my) c.Superstar++
+      else if (cons >= mx) c.Anchor++
+      else if (exp >= my) c.Wildcard++
+      else c['Replacement Level']++
+    })
     return c
-  }, [filtered])
+  }, [filtered, mx, my])
 
   return (
     <Layout>
@@ -84,15 +118,33 @@ export default function Matrix() {
           {/* Filters */}
           <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="glass-card mb-6 sm:mb-8 p-4 sm:p-6"
+            className="flex flex-col sm:flex-row gap-4 mb-8"
           >
-            <div className="relative max-w-sm">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input 
-                type="text" value={search} onChange={e => setSearch(e.target.value)} 
-                placeholder="Search player..." 
-                className="form-input pl-11 h-11 rounded-xl bg-gray-100/50 dark:bg-dark-800/50 w-full" 
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search player..."
+                className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white/5 dark:bg-dark-800/50 border border-gray-200 dark:border-dark-700 focus:border-primary-500 outline-none transition-all text-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
+            </div>
+            
+            <div className="flex p-1.5 bg-gray-100 dark:bg-dark-900/50 rounded-2xl border border-gray-200 dark:border-dark-700">
+              {['All', 'Batter', 'Bowler', 'All-Rounder'].map(role => (
+                <button
+                  key={role}
+                  onClick={() => setSelectedRole(role)}
+                  className={`px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                    selectedRole === role 
+                      ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' 
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  {role}
+                </button>
+              ))}
             </div>
           </motion.div>
         </div>
