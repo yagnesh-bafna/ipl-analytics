@@ -205,8 +205,27 @@ export default function Matrix() {
                       <tr>
                         <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Player</th>
                         <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Category</th>
-                        <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Runs</th>
-                        <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">SR</th>
+                        
+                        {/* Dynamic Headers based on selectedRole */}
+                        {selectedRole === 'Batter' && (
+                          <>
+                            <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Runs</th>
+                            <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">SR</th>
+                          </>
+                        )}
+                        {selectedRole === 'Bowler' && (
+                          <>
+                            <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Wickets</th>
+                            <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Econ</th>
+                          </>
+                        )}
+                        {(selectedRole === 'All-Rounder' || selectedRole === 'All') && (
+                          <>
+                            <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Runs</th>
+                            <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Wickets</th>
+                          </>
+                        )}
+                        
                         <th className="py-4 px-6 text-left uppercase text-[11px] font-bold tracking-wider text-gray-500">Type</th>
                       </tr>
                     </thead>
@@ -218,8 +237,27 @@ export default function Matrix() {
                           <tr key={i} className="hover:bg-gray-100/50 dark:hover:bg-dark-800/30 transition-colors">
                             <td className="py-4 px-6"><button onClick={() => navigate(`/player/${p.player}?type=Matrix`)} className="font-bold text-primary-500 hover:text-primary-400 hover:underline">{p.player}</button></td>
                             <td className="py-4 px-6"><span className={`badge ${badge} text-xs font-bold`}>{cat}</span></td>
-                            <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{p.runs || 0}</td>
-                            <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{(p.strike_rate || 0).toFixed(1)}</td>
+                            
+                            {/* Dynamic Cells based on selectedRole */}
+                            {selectedRole === 'Batter' && (
+                              <>
+                                <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{p.runs || 0}</td>
+                                <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{(p.strike_rate || 0).toFixed(1)}</td>
+                              </>
+                            )}
+                            {selectedRole === 'Bowler' && (
+                              <>
+                                <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{p.wickets || 0}</td>
+                                <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{(p.economy || 0).toFixed(2)}</td>
+                              </>
+                            )}
+                            {(selectedRole === 'All-Rounder' || selectedRole === 'All') && (
+                              <>
+                                <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{p.runs || 0}</td>
+                                <td className="py-4 px-6 font-medium text-gray-700 dark:text-gray-300">{p.wickets || 0}</td>
+                              </>
+                            )}
+
                             <td className="py-4 px-6 capitalize text-gray-500 font-semibold">{p.type}</td>
                           </tr>
                         )

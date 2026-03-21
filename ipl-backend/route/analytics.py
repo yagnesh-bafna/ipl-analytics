@@ -401,7 +401,7 @@ def player_matrix():
         all_players["matrix_category"] = all_players.apply(categorize, axis=1)
 
         # 6. JSON CLEANUP & RETURN
-        cols = ["player", "type", "runs", "strike_rate_bat", "wickets", "matrix_category", "norm_cons", "norm_exp"]
+        cols = ["player", "type", "runs", "strike_rate_bat", "wickets", "economy", "matrix_category", "norm_cons", "norm_exp"]
         result = all_players[cols].rename(columns={"strike_rate_bat": "strike_rate"}).to_dict(orient="records")
         
         # Clean numeric values for JSON
