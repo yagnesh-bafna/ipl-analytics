@@ -7,8 +7,8 @@ all_rounder_bp = Blueprint("all_rounder", __name__)
 
 @all_rounder_bp.route("/api/all_rounder")
 def all_rounder():
-    min_runs = request.args.get("min_runs", 100, type=int)
-    min_wickets = request.args.get("min_wickets", 5, type=int)
+    min_runs = request.args.get("min_runs", 0, type=int)
+    min_wickets = request.args.get("min_wickets", 0, type=int)
 
     conn = get_connection()
     batting_query = """
@@ -86,7 +86,7 @@ def all_rounder():
             "matches": int(row["matches_bat"]),
             "runs": int(row["runs"]),
             "strike_rate": round(float(row["strike_rate_bat"]), 2),
-            "avg": round(float(row["avg"]), 2),
+            "avg": round(float(row["avg_bat"]), 2),
             "wickets": int(row["wickets"]),
             "economy": round(float(row["economy"]), 2),
             "score": round(float(row["score"]), 2),

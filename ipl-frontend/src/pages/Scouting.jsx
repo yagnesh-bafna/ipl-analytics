@@ -214,7 +214,7 @@ export default function Scouting({ type }) {
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-8 mt-8 border-t border-gray-100 dark:border-dark-800">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pt-8 mt-8 border-t border-gray-100 dark:border-dark-800">
                     {cfg.filterFields.map(f => (
                       <div key={f.key} className="space-y-3">
                         <div className="flex justify-between items-center">
