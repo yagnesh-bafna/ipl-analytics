@@ -7,23 +7,31 @@ bowling_bp = Blueprint("bowling", __name__)
 
 @bowling_bp.route("/api/bowling")
 def bowling():
-    min_wickets = request.args.get("min_wickets", 0, type=int)
-    max_economy = request.args.get("max_economy", 99.0, type=float)
-    max_sr = request.args.get("max_sr", 999.0, type=float)
-
-    conn = get_connection()
-    query = """
-    SELECT b.*, p.cricket_country 
-    FROM bowling_stats b
-    LEFT JOIN players p ON b.bowler = p.player_name
-    """
-    raw_df = pd.read_sql(query, conn)
-    conn.close()
-
-    if raw_df.empty:
-        return jsonify([])
-
     try:
+        min_wickets = request.args.get("min_wickets", 0, type=int)
+        max_economy = request.args.get("max_economy", 99.0, type=float)
+        max_sr = request.args.get("max_sr", 999.0, type=float)
+
+        conn = get_connection()
+        if not conn:
+            return jsonify({"error": "Database connection failed"}), 500
+
+        query = """
+        SELECT b.*, p.cricket_country 
+        FROM bowling_stats b
+        LEFT JOIN players p ON b.bowler = p.player_name
+        """
+        raw_df = pd.read_sql(query, conn)
+        conn.close()
+
+        if raw_df.empty:
+            return jsonify([])
+
+        # Ensure numeric types
+        for col in ["wickets", "runs_conceded", "overs", "economy", "strike_rate"]:
+            if col in raw_df.columns:
+                raw_df[col] = pd.to_numeric(raw_df[col], errors="coerce").fillna(0)
+
         metrics = bowling_metrics(raw_df).fillna(0)
 
         # Apply dynamic filters
@@ -49,13 +57,13 @@ def bowling():
 
             result.append({
                 "player": bowler_name,
-                "cricket_country": row["cricket_country"] if "cricket_country" in row and row["cricket_country"] else "India",
-                "matches": int(row["matches"]),
-                "wickets": int(row["wickets"]),
-                "economy": round(float(row["economy"]), 2),
-                "strike_rate": round(float(row["strike_rate"]), 2),
-                "avg": round(float(row["avg"]), 2),
-                "dot_ball_pct": round(float(row["dot_ball_pct"]), 2),
+                "cricket_country": str(row.get("cricket_country", "India")) if row.get("cricket_country") else "India",
+                "matches": int(row.get("matches", 0)),
+                "wickets": int(row.get("wickets", 0)),
+                "economy": round(float(row.get("economy", 0)), 2),
+                "strike_rate": round(float(row.get("strike_rate", 0)), 2),
+                "avg": round(float(row.get("avg", 0)), 2),
+                "dot_ball_pct": round(float(row.get("dot_ball_pct", 0)), 2),
                 "season_history": season_stats
             })
 
@@ -63,5 +71,7 @@ def bowling():
         result = sorted(result, key=lambda x: x["wickets"], reverse=True)
         return jsonify(result)
     except Exception as e:
-        print(f"Bowling API Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        print(f"Bowling API Error: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
