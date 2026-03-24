@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
 import pandas as pd
+import numpy as np
 from database.connect_db import get_connection
 
 analytics_bp = Blueprint("analytics", __name__)
@@ -191,7 +192,6 @@ def magic_fill():
         print(f"[Magic Fill] Squad generation complete. Final size: {len(squad)}")
 
         # Final check for NaN/Inf in the list of dicts (JSON safety)
-        import json
         def clean_json(obj):
             if isinstance(obj, float):
                 if np.isnan(obj) or np.isinf(obj): return 0.0
@@ -413,7 +413,6 @@ def player_matrix():
         result = all_players[cols].rename(columns={"strike_rate_bat": "strike_rate"}).to_dict(orient="records")
         
         # Clean numeric values for JSON
-        import numpy as np
         def clean_val(v):
             if isinstance(v, float) and (np.isnan(v) or np.isinf(v)): return 0.0
             return v
