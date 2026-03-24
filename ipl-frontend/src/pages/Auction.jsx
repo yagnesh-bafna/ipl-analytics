@@ -86,7 +86,7 @@ export default function Auction() {
                           <td className="py-4 px-6">
                             <button 
                               onClick={() => navigate(`/player/${p.player}?type=Auction`)} 
-                              className="font-bold text-primary-500 hover:text-primary-400 hover:underline text-base"
+                              className="font-bold text-primary-500 hover:text-primary-400 hover:underline text-left text-base"
                             >
                               {p.player}
                             </button>

@@ -309,13 +309,13 @@ def player_matrix():
         # Using a PARTICIPATION FILTER (min 30 balls faced OR 12 overs bowled)
         # to remove noise and cameos.
         batting_query = """
-        SELECT b.*, p.cricket_country 
+        SELECT b.*, p.cricket_country, p.age, p.birth_country
         FROM batting_stats b
         LEFT JOIN players p ON b.player = p.player_name
         WHERE b.season IN (2024, 2025)
         """
         bowling_query = """
-        SELECT b.*, p.cricket_country 
+        SELECT b.*, p.cricket_country, p.age, p.birth_country
         FROM bowling_stats b
         LEFT JOIN players p ON b.bowler = p.player_name
         WHERE b.season IN (2024, 2025)
@@ -329,20 +329,28 @@ def player_matrix():
         bat_m = batting_metrics(batting)
         bowl_m = bowling_metrics(bowling)
         
-        # ELITE PARTICIPATION FILTER:
-        # Min 50 runs OR 5 wickets to be considered for the Matrix
-        bat_m = bat_m[bat_m["runs"] >= 50].copy()
-        bowl_m = bowl_m[bowl_m["wickets"] >= 5].copy()
+        # Preserve additional metadata columns during aggregation if they exist
+        # batting_metrics and bowling_metrics aggregate by 'player'
+        # We need to manually add 'age' and 'birth_country' back if they got lost or weren't handled
         
         # 3. SMART ROLE DETECTION (Batter, Bowler, or All-Rounder)
         # Merge both to find overlaps
         all_players = pd.merge(
-            bat_m[["player", "runs", "strike_rate", "consistency", "boundary_pct"]],
+            bat_m[["player", "runs", "strike_rate", "consistency", "boundary_pct", "cricket_country"]],
             bowl_m[["player", "wickets", "economy", "strike_rate", "dot_ball_pct"]],
             on="player",
             how="outer",
             suffixes=("_bat", "_bowl")
         ).fillna(0)
+
+        # Add back age and birth_country from original dataframes
+        # We can create a mapping from the raw data
+        player_meta = pd.concat([
+            batting[["player", "age", "birth_country"]].rename(columns={"player": "player"}),
+            bowling[["bowler", "age", "birth_country"]].rename(columns={"bowler": "player"})
+        ]).drop_duplicates("player")
+        
+        all_players = pd.merge(all_players, player_meta, on="player", how="left")
 
         def determine_type(row):
             if row["runs"] >= 100 and row["wickets" ] >= 5:
@@ -401,7 +409,7 @@ def player_matrix():
         all_players["matrix_category"] = all_players.apply(categorize, axis=1)
 
         # 6. JSON CLEANUP & RETURN
-        cols = ["player", "type", "runs", "strike_rate_bat", "wickets", "economy", "matrix_category", "norm_cons", "norm_exp"]
+        cols = ["player", "type", "runs", "strike_rate_bat", "wickets", "economy", "matrix_category", "norm_cons", "norm_exp", "age", "birth_country"]
         result = all_players[cols].rename(columns={"strike_rate_bat": "strike_rate"}).to_dict(orient="records")
         
         # Clean numeric values for JSON
